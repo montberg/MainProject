@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MainProject</string>
+    <string name="textSize">22sp</string>
+    <string name="Address">Адрес:</string>
+</resources>

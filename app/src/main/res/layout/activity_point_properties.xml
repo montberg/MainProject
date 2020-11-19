@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PointProperties">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Площадка"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/Ploshadka"
+        android:textSize="25sp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblAdress"
+        android:textSize="17sp"
+        android:layout_below="@id/Ploshadka"
+        android:text="@string/Address"/>
+
+    <AutoCompleteTextView
+        android:id="@+id/chooseAddress"
+        android:textSize="17sp"
+        android:layout_width="match_parent"
+        android:inputType="text|textMultiLine"
+        android:imeOptions="actionDone"
+        android:imeActionLabel="Done"
+        android:hint="Адрес"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lblAdress"/>
+
+    <AutoCompleteTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:imeOptions="actionDone"
+        android:imeActionLabel="Done"
+        android:id="@+id/autoTipOsnovania"
+        android:layout_below="@id/chooseAddress"
+        android:hint="Тип основания"
+        />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:textSize="17sp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:id="@+id/txtPloshad"
+        android:hint="Площадь, м^2"
+        android:layout_below="@id/autoTipOsnovania"
+        />
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtPloshad"
+        android:id="@+id/checkUvelichitPloshad"
+        android:text="Возможно увеличить площадь?"
+        />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/checkUvelichitPloshad"
+        android:id="@+id/checkSReconstrukcjei"
+        android:visibility="gone"
+        android:text="С реконструкцией/без"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Есть ли ограждение?"
+        android:id="@+id/checkOgrazhdenie"
+        android:layout_below="@id/checkSReconstrukcjei"/>
+    <AutoCompleteTextView
+        android:layout_width="match_parent"
+        android:textSize="17sp"
+        android:id="@+id/autoOgrazhdenie"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/checkOgrazhdenie"
+        android:hint="Материал ограждения"
+        android:visibility="gone"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Количество контейнеров"
+        android:layout_below="@id/autoOgrazhdenie"
+        android:id="@+id/txtKolvoKonteinerov"
+        android:inputType="number"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="Контейнеры"
+        android:textSize="25sp"
+        android:id="@+id/Konteineri"
+        android:layout_below="@id/txtKolvoKonteinerov"/>
+
+    <AutoCompleteTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="17sp"
+        android:id="@+id/autoTipMusora"
+        android:layout_below="@id/Konteineri"
+        android:hint="Тип мусора"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:textSize="17sp"
+        android:id="@+id/autoObjemKonteinerov"
+        android:layout_below="@id/autoTipMusora"
+        android:hint="Объем контейнеров"
+        />
+</RelativeLayout>

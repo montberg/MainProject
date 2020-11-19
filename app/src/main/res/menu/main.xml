@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+
+    <item
+        android:id="@+id/itemGoToMap"
+
+        app:showAsAction="ifRoom"
+        android:title="К карте">
+    </item>
+
+    <item
+        android:id="@+id/itemGoToList"
+        app:showAsAction="ifRoom"
+        android:title="К списку">
+    </item>
+
+    <item
+        android:id="@+id/itemLogOut"
+        android:icon="@drawable/ic_menu_dots"
+        android:title="Меню"
+        app:showAsAction="always">
+    </item>
+
+
+
+
+</menu>

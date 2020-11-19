@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/txtLoginLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Вход"
+            android:textSize="30sp" />
+        <EditText
+            android:id="@+id/txtLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="60dp"
+            android:layout_below="@id/txtLoginLabel"
+            android:hint="Логин"
+            android:inputType="text"
+            android:textSize="20sp" />
+        <EditText
+            android:id="@+id/txtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="60dp"
+            android:hint="Пароль"
+            android:inputType="textPassword"
+            android:textSize="20sp"
+            android:layout_below="@id/txtLogin"/>
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="Вход"
+            android:layout_below="@id/txtPassword"/>
+        <Button
+            android:id="@+id/devLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btnLogin"
+            android:layout_centerHorizontal="true"
+            android:text="login" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test"
+            android:id="@+id/devTest"
+            android:layout_below="@id/devLogin"
+            android:layout_centerHorizontal="true"/>
+    </RelativeLayout>
+</RelativeLayout>
