@@ -1,36 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="130dp"
-    android:layout_width="130dp"
-    >
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/containerNumber"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Тип отходов"
-        android:id="@+id/labelType"
-        android:layout_below="@id/containerNumber"
-        android:layout_centerHorizontal="true"/>
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/containerRubbishType"
-        android:layout_below="@id/labelType"
-        android:layout_centerHorizontal="true"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Объем контейнера"
-        android:id="@+id/labelVolume"
-        android:layout_below="@id/containerRubbishType"
         android:layout_centerHorizontal="true"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/containerVolume"
-        android:layout_below="@id/labelVolume"
+        android:layout_below="@id/containerRubbishType"
         android:layout_centerHorizontal="true"/>
 </RelativeLayout>

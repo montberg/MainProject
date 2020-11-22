@@ -17,10 +17,13 @@ open class OptionsMenu: AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId){
             R.id.itemGoToMap -> {
-                finish()
+                val goToMap = Intent(this, MapActivity::class.java)
+                this.finishAffinity()
+                startActivity(goToMap)
             }
             R.id.itemGoToList -> {
                 val goToList = Intent(this, ListActivity::class.java)
+                this.finishAffinity()
                 startActivity(goToList)
             }
             R.id.itemLogOut -> {

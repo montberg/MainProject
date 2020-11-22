@@ -1,18 +1,20 @@
 package com.example.mainproject
 
-import android.app.Activity
+import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.CheckBox
-import android.widget.EditText
+import android.view.ViewGroup
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.net.URL
 
 
+lateinit var containerList: MutableList<Container>
+lateinit var txtTipMusora : AutoCompleteTextView
+lateinit var txtObjemKonteinerov : EditText
 class PointProperties : AppCompatActivity(), DataBase{
     companion object {
         const val LAT = "lat"
@@ -25,10 +27,9 @@ class PointProperties : AppCompatActivity(), DataBase{
     lateinit var checkSReconstrukcjei : CheckBox
     lateinit var checkOgrazhdenie : CheckBox
     lateinit var txtMaterialOgrazhdenia : AutoCompleteTextView
-    lateinit var txtKolvoKonteinerov : EditText
-    lateinit var txtTipMusora : AutoCompleteTextView
-    lateinit var txtObjemKonteinerov : EditText
-
+    lateinit var btnAddContainer : Button
+    lateinit var btnAddPlatform : Button
+    lateinit var containerListView:ListView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_point_properties)
@@ -39,6 +40,9 @@ class PointProperties : AppCompatActivity(), DataBase{
         val geocodeURL = "https://geocode-maps.yandex.ru/1.x/?apikey=$apiKey&format=json&geocode=$lat,$lng"
         val apiResponse = URL(geocodeURL).readText()
         val txtAddressArray = getAddressLines(apiResponse)
+        containerList = arrayListOf()
+        val adapter = ContainerAdapter(this)
+        containerListView.adapter = adapter
         val txtAddressAdapter = ArrayAdapter(this, R.layout.autocomplete_layout, txtAddressArray)
         txtAddressAdapter.setDropDownViewResource(R.layout.autocomplete_layout)
         txtAddress.setAdapter(txtAddressAdapter)
@@ -59,10 +63,34 @@ class PointProperties : AppCompatActivity(), DataBase{
             if(isChecked) showHide(txtMaterialOgrazhdenia)
             else showHide(txtMaterialOgrazhdenia)
         }
-
-
+        btnAddContainer.setOnClickListener {
+            val container = Container(txtTipMusora.text.toString(), txtObjemKonteinerov.text.toString().toDouble())
+            containerList.add(container)
+            adapter.add(container)
+        }
+        btnAddPlatform.setOnClickListener {
+            val address = txtAddress.text.toString()
+            val latitude = lat
+            val longitude = lng
+            val baseType = txtTipOsnovania.text.toString()
+            val square = txtPloshad.text.toString().toDouble()
+            val boolIsIncreaseble = checkUvelichitPloshad.isChecked
+            val boolWithRec = checkSReconstrukcjei.isChecked
+            val boolWithFence = checkOgrazhdenie.isChecked
+            val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
+            val containersArray: Array<Container>? = if(containerList.isEmpty()) arrayOf() else containerList.toTypedArray()
+            val newPlatform = Platform(latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray)
+            try{
+            insertDataToTable(newPlatform)
+            }
+            catch (e: Exception){
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            }
+        }
     }
-    fun findAllElements(){
+
+    private fun findAllElements(){
+        btnAddPlatform = findViewById(R.id.addPlatform)
         txtAddress = findViewById(R.id.chooseAddress)
         txtAddress = findViewById(R.id.chooseAddress)
         txtTipOsnovania = findViewById(R.id.autoTipOsnovania)
@@ -71,11 +99,12 @@ class PointProperties : AppCompatActivity(), DataBase{
         checkSReconstrukcjei = findViewById(R.id.checkSReconstrukcjei)
         checkOgrazhdenie = findViewById(R.id.checkOgrazhdenie)
         txtMaterialOgrazhdenia = findViewById(R.id.autoOgrazhdenie)
-        txtKolvoKonteinerov = findViewById(R.id.txtKolvoKonteinerov)
         txtTipMusora = findViewById(R.id.autoTipMusora)
         txtObjemKonteinerov = findViewById(R.id.autoObjemKonteinerov)
+        btnAddContainer = findViewById(R.id.addContainer)
+        containerListView = findViewById(R.id.containerListView)
     }
-    fun showHide(view: View) {
+    private fun showHide(view: View) {
         if (view.visibility == View.VISIBLE){
             view.visibility = View.GONE
         } else{
@@ -83,19 +112,31 @@ class PointProperties : AppCompatActivity(), DataBase{
         }
     }
 
-   private fun getAddressLines(RESPONSE: String) : List<String> {
-       val jsonObject:JsonObject = Gson().fromJson(RESPONSE, JsonObject::class.java)
-       val response = jsonObject.getAsJsonObject("response")
-       val geoObjectCollection = response.getAsJsonObject("GeoObjectCollection")
-       val featureMember = geoObjectCollection.getAsJsonArray("featureMember")
-       return featureMember.map { jsonElement ->
-           val memberChild = jsonElement.asJsonObject
-           val geoObject = memberChild.getAsJsonObject("GeoObject")
-           val metaData = geoObject.getAsJsonObject("metaDataProperty")
-           val geocoder = metaData.getAsJsonObject("GeocoderMetaData")
-           val addressDetails = geocoder.getAsJsonObject("AddressDetails")
-           val country = addressDetails.getAsJsonObject("Country")
-           country.get("AddressLine").asString
-       }
-   }
+    private fun getAddressLines(RESPONSE: String) : List<String> {
+        val jsonObject:JsonObject = Gson().fromJson(RESPONSE, JsonObject::class.java)
+        val response = jsonObject.getAsJsonObject("response")
+        val geoObjectCollection = response.getAsJsonObject("GeoObjectCollection")
+        val featureMember = geoObjectCollection.getAsJsonArray("featureMember")
+        return featureMember.map { jsonElement ->
+            val memberChild = jsonElement.asJsonObject
+            val geoObject = memberChild.getAsJsonObject("GeoObject")
+            val metaData = geoObject.getAsJsonObject("metaDataProperty")
+            val geocoder = metaData.getAsJsonObject("GeocoderMetaData")
+            val addressDetails = geocoder.getAsJsonObject("AddressDetails")
+            val country = addressDetails.getAsJsonObject("Country")
+            country.get("AddressLine").asString
+        }
+    }
+    private class ContainerAdapter(ctx: Context) : ArrayAdapter<Container>(ctx, android.R.layout.simple_list_item_2, containerList){
+        override fun getView(position: Int, ConvertView: View?, parent: ViewGroup): View {
+            var convertView = ConvertView
+            val container: Container? = getItem(position)
+            if (convertView == null) {
+                convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_2, null)
+            }
+            (convertView!!.findViewById<View>(android.R.id.text1) as TextView).text = container!!.RubbishType
+            (convertView.findViewById<View>(android.R.id.text2) as TextView).text = container.Volume.toString()
+            return convertView
+        }
+    }
 }

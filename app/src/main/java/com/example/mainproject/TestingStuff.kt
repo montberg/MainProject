@@ -38,15 +38,15 @@ class TestingStuff : AppCompatActivity(), DataBase {
            // catch (e: Exception){
            //     Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
            // }
-            val item: View = ltInflater.inflate(R.layout.container, relativeLayout, false)
-            val containerRubbishType:TextView = item.findViewById(R.id.containerRubbishType)
-            containerRubbishType.text = "Органические отходы"
-            val containerVolume:TextView = item.findViewById(R.id.containerVolume)
-            containerVolume.text = "12 кв м"
-            val containerNumber:TextView = item.findViewById(R.id.containerNumber)
-            containerNumber.text = i.toString()
-            item.layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT
-            relativeLayout.addView(item)
+           //val item: View = ltInflater.inflate(R.layout.container, relativeLayout, false)
+           //val containerRubbishType:TextView = item.findViewById(R.id.containerRubbishType)
+           //containerRubbishType.text = "Органические отходы"
+           //val containerVolume:TextView = item.findViewById(R.id.containerVolume)
+           //containerVolume.text = "12 кв м"
+           //val containerNumber:TextView = item.findViewById(R.id.containerNumber)
+           //containerNumber.text = i.toString()
+           //item.layoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT
+           //relativeLayout.addView(item)
         }
     }
     //override fun onActivityResult(requestCode: Int, resultCode: Int, imageReturnedIntent: Intent?) {
