@@ -2,7 +2,8 @@ package com.example.mainproject
 
 import java.io.Serializable
 
-class Platform (lat:Double,
+class Platform (id:Int,
+                lat:Double,
                lng:Double,
                address:String,
                baseType:String,
@@ -13,6 +14,7 @@ class Platform (lat:Double,
                fenceMat:String? = null,
                containersArray:Array<Container>? = arrayOf()
 ): Serializable {
+    val Id = id
     val Lat = lat
     val Lng = lng
     val Address = address

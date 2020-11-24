@@ -10,6 +10,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
         android:gravity="center">
 
         <TextView
@@ -23,7 +24,7 @@
             android:id="@+id/txtLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="60dp"
+            android:layout_marginHorizontal="100dp"
             android:layout_below="@id/txtLoginLabel"
             android:hint="Логин"
             android:inputType="text"
@@ -32,28 +33,31 @@
             android:id="@+id/txtPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="60dp"
+            android:layout_marginHorizontal="100dp"
             android:hint="Пароль"
             android:inputType="textPassword"
             android:textSize="20sp"
             android:layout_below="@id/txtLogin"/>
         <Button
             android:id="@+id/btnLogin"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="100dp"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"
             android:text="Вход"
             android:layout_below="@id/txtPassword"/>
         <Button
             android:id="@+id/devLogin"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="100dp"
             android:layout_below="@id/btnLogin"
             android:layout_centerHorizontal="true"
             android:text="login" />
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginHorizontal="100dp"
             android:layout_height="wrap_content"
             android:text="Test"
             android:id="@+id/devTest"

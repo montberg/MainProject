@@ -2,23 +2,31 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ctl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/ctl"
-    tools:context=".PointProperties"
+    android:orientation="vertical"
     android:scrollbars="vertical"
-    android:orientation="vertical">
+    tools:context=".PointProperties">
 
     <RelativeLayout
         android:id="@+id/relativeLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="20dp"
         android:layout_marginBottom="60dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/showOnMap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="Показать на карте" />
 
         <TextView
             android:id="@+id/Ploshadka"
@@ -122,10 +130,10 @@
 
         <Button
             android:id="@+id/addContainer"
-            android:layout_alignEnd="@id/autoTipMusora"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/autoOgrazhdenie"
+            android:layout_alignEnd="@id/autoTipMusora"
             android:text="Добавить" />
 
         <ListView
@@ -134,19 +142,27 @@
             android:layout_height="match_parent"
             android:layout_below="@id/autoObjemKonteinerov"
             android:orientation="horizontal" />
-
-
     </RelativeLayout>
 
     <Button
-        android:id="@+id/addPlatform"
-        android:layout_width="match_parent"
+        android:id="@+id/commitChanges"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="20dp"
         android:layout_marginVertical="10dp"
         android:text="Потдвердить изменения"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/deletePlatform"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:text="Удалить"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,11 +1,16 @@
 package com.example.mainproject
 
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
+import android.text.BoringLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import android.widget.AdapterView.OnItemClickListener
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -64,11 +69,31 @@ class PointProperties : AppCompatActivity(), DataBase{
             else showHide(txtMaterialOgrazhdenia)
         }
         btnAddContainer.setOnClickListener {
+            try{
             val container = Container(txtTipMusora.text.toString(), txtObjemKonteinerov.text.toString().toDouble())
             containerList.add(container)
-            adapter.add(container)
+            adapter.notifyDataSetChanged()
+            } catch (e:Exception){
+                checkContainer()
+            }
+        }
+
+        containerListView.setOnItemClickListener { _, _, position, _ ->
+            val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            builder.setMessage("Удалить контейнер?")
+                    .setCancelable(true)
+                    .setPositiveButton("Да") { _, _ ->
+                        containerList.removeAt(position)
+                        adapter.notifyDataSetChanged()
+                    }
+                    .setNegativeButton("Нет") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+            val alert = builder.create()
+            alert.show()
         }
         btnAddPlatform.setOnClickListener {
+            try{
             val address = txtAddress.text.toString()
             val latitude = lat
             val longitude = lng
@@ -79,16 +104,32 @@ class PointProperties : AppCompatActivity(), DataBase{
             val boolWithFence = checkOgrazhdenie.isChecked
             val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
             val containersArray: Array<Container>? = if(containerList.isEmpty()) arrayOf() else containerList.toTypedArray()
-            val newPlatform = Platform(latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray)
+            val newPlatform = Platform(0,latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray)
             try{
-            insertDataToTable(newPlatform)
-            }
-            catch (e: Exception){
+                insertDataToTable(newPlatform)
+                Toast.makeText(this, "Площадка успешно добавлена", Toast.LENGTH_LONG).show()
+            } catch (e: Exception){
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             }
+        } catch (e:Exception){
+                checkPlatform()
+            }
         }
-    }
 
+    }
+    private fun checkContainer(){
+        if(txtTipMusora.text.isEmpty()) txtTipMusora.error = ""
+        if(txtObjemKonteinerov.text.isEmpty()) txtObjemKonteinerov.error = ""
+    }
+    private fun checkPlatform(){
+        if(txtAddress.text.isEmpty()) txtAddress.error = ""
+        if(txtTipOsnovania.text.isEmpty()) txtTipOsnovania.error = ""
+        if(checkOgrazhdenie.isChecked){
+            if(txtMaterialOgrazhdenia.text.isEmpty()) txtMaterialOgrazhdenia.error = ""
+        }
+        if(txtPloshad.text.isEmpty()) txtPloshad.error = ""
+        if(txtMaterialOgrazhdenia.text.isEmpty()) txtAddress.error = ""
+    }
     private fun findAllElements(){
         btnAddPlatform = findViewById(R.id.addPlatform)
         txtAddress = findViewById(R.id.chooseAddress)

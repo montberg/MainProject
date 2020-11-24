@@ -18,12 +18,11 @@ open class OptionsMenu: AppCompatActivity() {
         when (item.itemId){
             R.id.itemGoToMap -> {
                 val goToMap = Intent(this, MapActivity::class.java)
-                this.finishAffinity()
+                this.finish()
                 startActivity(goToMap)
             }
             R.id.itemGoToList -> {
                 val goToList = Intent(this, ListActivity::class.java)
-                this.finishAffinity()
                 startActivity(goToList)
             }
             R.id.itemLogOut -> {
@@ -45,8 +44,6 @@ open class OptionsMenu: AppCompatActivity() {
                         }
                 val alert = builder.create()
                 alert.show()
-
-
             }
         }
         return true

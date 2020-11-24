@@ -9,27 +9,40 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.yandex.mapkit.geometry.Point
+import com.yandex.runtime.image.ImageProvider
 
 import java.io.StringReader
+import java.lang.Exception
 import java.net.URL
 
-lateinit var ArrayOfPlatforms:Array<Platform>
-class ListActivity() : OptionsMenu(), DataBase {
+var ArrayOfPlatforms:Array<Platform> = arrayOf()
+class ListActivity : OptionsMenu(), DataBase {
+    lateinit var adapter:PlatformAdapter
+    lateinit var platformlistview:ListView
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.list_activity)
-        val platformlistview = findViewById<ListView>(R.id.platformList)
-        val adapter = PlatformAdapter(this)
+        ArrayOfPlatforms = getPlatform()
+        platformlistview = findViewById(R.id.platformList)
+        adapter = PlatformAdapter(this)
         platformlistview.adapter = adapter
-        platformlistview.setOnItemClickListener { parent, view, position, id ->
+        platformlistview.setOnItemClickListener { _, _, position, _ ->
             val a = adapter.getItem(position)!!
             val redactor = Intent(this, Redactor::class.java)
             redactor.putExtra("Platform", a)
             startActivity(redactor)
         }
     }
+    override fun onResume() {
+        ArrayOfPlatforms = getPlatform()
+        adapter = PlatformAdapter(this)
+        platformlistview.adapter = adapter
+        adapter.notifyDataSetChanged()
+        super.onResume()
+    }
 }
-private class PlatformAdapter(ctx: Context) : ArrayAdapter<Platform>(ctx, android.R.layout.simple_list_item_2, ArrayOfPlatforms){
+class PlatformAdapter(ctx: Context) : ArrayAdapter<Platform>(ctx, android.R.layout.simple_list_item_2, ArrayOfPlatforms){
     override fun getView(position: Int, ConvertView: View?, parent: ViewGroup): View {
         var convertView: View? = ConvertView
         val platform: Platform? = getItem(position)

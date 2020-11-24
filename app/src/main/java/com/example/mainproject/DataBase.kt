@@ -42,7 +42,7 @@ interface DataBase {
     }
     fun insertDataToTable(platform:Platform) {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
-        var lastID:Int = 0
+        var lastID = 0
         val statement: Statement = connection.createStatement()
         var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount) " +
                 "VALUES(${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
@@ -59,6 +59,29 @@ interface DataBase {
         }
             connection.close()
     }
+    fun deletePlatform(id:Int){
+        val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
+        val statement: Statement = connection.createStatement()
+        val deleteQuery = "delete from platform where id = $id"
+        statement.execute(deleteQuery)
+        connection.close()
+    }
+    fun insertDataToTable(platform:Platform, id:Int) {
+        val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
+        val lastID:Int = id
+        val statement: Statement = connection.createStatement()
+        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount) " +
+                "VALUES(${lastID}, ${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}) MATCHING(id);"
+        statement.execute(strSQL)
+        strSQL = "delete from container where parent_id = $lastID;"
+        statement.execute(strSQL)
+        platform.Containersarray?.forEach { c ->
+            strSQL = "insert into container(rubbishtype, volume, parent_id) values('${c.RubbishType}', ${c.Volume}, ${lastID});"
+            statement.execute(strSQL)
+        }
+        connection.close()
+    }
     fun getPlatform(): Array<Platform> {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val statement: Statement = connection.createStatement()
@@ -66,6 +89,7 @@ interface DataBase {
         val response:ResultSet = statement.executeQuery(getPlatforms)
         val PlatformArray:MutableList<Platform> = arrayListOf()
         while(response.next()){
+            val id = response.getInt(1)
             val Lat = response.getFloat(2)
             val Lng =  response.getFloat(3)
             val Address = response.getString(4)
@@ -75,7 +99,8 @@ interface DataBase {
             val Boolwithrec = response.getBoolean(8)
             val Boolwithfence = response.getBoolean(9)
             val Fencemat = response.getString(10)
-            val getContainersQuery = "select * from container where parent_id = '${response.getInt(1)}'"
+
+            val getContainersQuery = "select * from container where parent_id = '${id}'"
             val connection2: Connection = DriverManager.getConnection(URL, getConnectionProperties())
             val statement2: Statement = connection2.createStatement()
             val containersListResponse = statement2.executeQuery(getContainersQuery)
@@ -87,7 +112,7 @@ interface DataBase {
                 tempContainerList.add(container)
             }
             connection2.close()
-            val tempPlatform = Platform(Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat.toString(), tempContainerList.toTypedArray())
+            val tempPlatform = Platform(id,Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat.toString(), tempContainerList.toTypedArray())
             PlatformArray.add(tempPlatform)
         }
         connection.close()
