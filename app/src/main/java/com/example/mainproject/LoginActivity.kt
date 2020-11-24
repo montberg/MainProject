@@ -41,9 +41,13 @@ class LoginActivity : AppCompatActivity(), DataBase {
 
 
         if(isLoggedIn){
+            try{
             val loginSuccess = Intent(this, MapActivity::class.java)
             startActivity(loginSuccess)
             finish()
+        }catch (e:Exception) {
+            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
+        }
         }
 
         devTest.setOnClickListener {
@@ -52,9 +56,13 @@ class LoginActivity : AppCompatActivity(), DataBase {
         }
 
         devLogin.setOnClickListener {
+            try{
             val loginSuccess = Intent(this, MapActivity::class.java)
             startActivity(loginSuccess)
             finish()
+            }catch (e:Exception) {
+                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
+            }
 
         }
 

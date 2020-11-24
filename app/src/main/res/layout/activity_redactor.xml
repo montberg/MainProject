@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ctl"
@@ -9,160 +9,175 @@
     android:scrollbars="vertical"
     tools:context=".PointProperties">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="60dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/scroll"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <RelativeLayout
+            android:id="@+id/relativeLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <Button
+                android:id="@+id/showOnMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="Показать на карте" />
+
+            <TextView
+                android:id="@+id/Ploshadka"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Площадка"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/lblAdress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/Ploshadka"
+                android:text="@string/Address"
+                android:textSize="17sp" />
+
+            <AutoCompleteTextView
+                android:id="@+id/chooseAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/lblAdress"
+                android:hint="Адрес"
+                android:imeActionLabel="Done"
+                android:imeOptions="actionDone"
+                android:inputType="text|textMultiLine"
+                android:textSize="17sp" />
+
+            <AutoCompleteTextView
+                android:id="@+id/autoTipOsnovania"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/chooseAddress"
+                android:hint="Тип основания"
+                android:imeActionLabel="Done"
+                android:imeOptions="actionDone" />
+
+            <EditText
+                android:id="@+id/txtPloshad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/autoTipOsnovania"
+                android:hint="Площадь, м^2"
+                android:inputType="numberDecimal"
+                android:textSize="17sp" />
+
+            <CheckBox
+                android:id="@+id/checkUvelichitPloshad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtPloshad"
+                android:text="Возможно увеличить площадь?" />
+
+            <CheckBox
+                android:id="@+id/checkSReconstrukcjei"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/checkUvelichitPloshad"
+                android:text="С реконструкцией/без"
+                android:visibility="gone" />
+
+            <CheckBox
+                android:id="@+id/checkOgrazhdenie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/checkSReconstrukcjei"
+                android:text="Есть ли ограждение?" />
+
+            <AutoCompleteTextView
+                android:id="@+id/autoOgrazhdenie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/checkOgrazhdenie"
+                android:hint="Материал ограждения"
+                android:textSize="17sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/Konteineri"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/autoOgrazhdenie"
+                android:text="Контейнеры"
+                android:textSize="25sp" />
+
+            <AutoCompleteTextView
+                android:id="@+id/autoTipMusora"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/Konteineri"
+                android:hint="Тип мусора"
+                android:textSize="17sp" />
+
+            <EditText
+                android:id="@+id/autoObjemKonteinerov"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/autoTipMusora"
+                android:hint="Объем контейнеров"
+                android:inputType="numberDecimal"
+                android:textSize="17sp" />
+
+            <Button
+                android:id="@+id/addContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/autoOgrazhdenie"
+                android:layout_alignEnd="@id/autoTipMusora"
+                android:text="Добавить" />
+        </RelativeLayout>
+    </ScrollView>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/scroll">
+
         <Button
-            android:id="@+id/showOnMap"
+            android:id="@+id/commitChanges"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:text="Показать на карте" />
-
-        <TextView
-            android:id="@+id/Ploshadka"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Площадка"
-            android:textSize="25sp" />
-
-        <TextView
-            android:id="@+id/lblAdress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/Ploshadka"
-            android:text="@string/Address"
-            android:textSize="17sp" />
-
-        <AutoCompleteTextView
-            android:id="@+id/chooseAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/lblAdress"
-            android:hint="Адрес"
-            android:imeActionLabel="Done"
-            android:imeOptions="actionDone"
-            android:inputType="text|textMultiLine"
-            android:textSize="17sp" />
-
-        <AutoCompleteTextView
-            android:id="@+id/autoTipOsnovania"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/chooseAddress"
-            android:hint="Тип основания"
-            android:imeActionLabel="Done"
-            android:imeOptions="actionDone" />
-
-        <EditText
-            android:id="@+id/txtPloshad"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/autoTipOsnovania"
-            android:hint="Площадь, м^2"
-            android:inputType="numberDecimal"
-            android:textSize="17sp" />
-
-        <CheckBox
-            android:id="@+id/checkUvelichitPloshad"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/txtPloshad"
-            android:text="Возможно увеличить площадь?" />
-
-        <CheckBox
-            android:id="@+id/checkSReconstrukcjei"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/checkUvelichitPloshad"
-            android:text="С реконструкцией/без"
-            android:visibility="gone" />
-
-        <CheckBox
-            android:id="@+id/checkOgrazhdenie"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/checkSReconstrukcjei"
-            android:text="Есть ли ограждение?" />
-
-        <AutoCompleteTextView
-            android:id="@+id/autoOgrazhdenie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/checkOgrazhdenie"
-            android:hint="Материал ограждения"
-            android:textSize="17sp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/Konteineri"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/autoOgrazhdenie"
-            android:text="Контейнеры"
-            android:textSize="25sp" />
-
-        <AutoCompleteTextView
-            android:id="@+id/autoTipMusora"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/Konteineri"
-            android:hint="Тип мусора"
-            android:textSize="17sp" />
-
-        <EditText
-            android:id="@+id/autoObjemKonteinerov"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/autoTipMusora"
-            android:hint="Объем контейнеров"
-            android:inputType="numberDecimal"
-            android:textSize="17sp" />
-
-        <Button
-            android:id="@+id/addContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/autoOgrazhdenie"
-            android:layout_alignEnd="@id/autoTipMusora"
-            android:text="Добавить" />
+            android:layout_alignParentBottom="true"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:text="Потдвердить изменения"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <ListView
             android:id="@+id/containerListView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/autoObjemKonteinerov"
-            android:orientation="horizontal" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignBottom="@id/commitChanges"
+            android:layout_marginBottom="40dp"/>
+
+        <Button
+            android:id="@+id/deletePlatform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:text="Удалить" />
     </RelativeLayout>
-
-    <Button
-        android:id="@+id/commitChanges"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
-        android:text="Потдвердить изменения"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        android:id="@+id/deletePlatform"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
-        android:text="Удалить"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

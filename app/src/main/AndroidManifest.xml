@@ -17,7 +17,7 @@
         <activity android:name=".Redactor" />
         <activity
             android:name=".PointProperties"
-            android:windowSoftInputMode="adjustPan" />
+            />
         <activity android:name=".TestingStuff" />
         <activity android:name=".ListActivity"
             android:theme="@style/Theme.AppCompat.DayNight"/>
