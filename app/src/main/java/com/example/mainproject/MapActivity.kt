@@ -4,31 +4,27 @@ package com.example.mainproject
 
 import android.Manifest
 import android.content.Intent
-import kotlinx.coroutines.*
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.graphics.PointF
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.widget.Button
-import android.widget.ImageView
 import androidx.core.app.ActivityCompat
-import androidx.core.view.get
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.CameraPosition
-import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
-import org.firebirdsql.management.User
 
 
 open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
+    private val TAG: String = this.javaClass.simpleName
     private val TARGET_LOCATION = Point(45.042529, 38.975963)
     private lateinit var mapview:MapView
     private lateinit var getMyLocation:Button
@@ -48,14 +44,17 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
                 ) != PackageManager.PERMISSION_GRANTED
         ){
             val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            ActivityCompat.requestPermissions(this, permissions,0)
+            ActivityCompat.requestPermissions(this, permissions, 0)
         }
 
-        mypos = Point(0.0,0.0)
+        mypos = Point(0.0, 0.0)
         val createPoint: Button = findViewById(R.id.createPoint)
         mapview = findViewById(R.id.map)
         getMyLocation = findViewById(R.id.getMyLocation)
+        val startTime = System.nanoTime()
         ArrayOfPlatforms = getPlatform()
+        val estimatedTime = System.nanoTime() - startTime
+        Log.i(TAG, estimatedTime.toString())
         ArrayOfPlatforms.forEach { p ->
             mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
         }

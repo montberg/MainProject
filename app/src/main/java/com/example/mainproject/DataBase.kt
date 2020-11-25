@@ -6,7 +6,7 @@ import java.sql.ResultSet
 import java.sql.Statement
 import java.util.*
 
-var URL = "jdbc:firebirdsql://192.168.1.62:3050/e:/data/DATABASE.FDB" //URL до бд в виде jdbc:firebirdsql://<IP-адрес либо сайт>:<порт>/<полный путь до БД>
+var URL = "jdbc:firebirdsql://192.168.0.105:3050/e:/data/DATABASE.FDB" //URL до бд в виде jdbc:firebirdsql://<IP-адрес либо сайт>:<порт>/<полный путь до БД>
 
 interface DataBase {
     fun getConnectionProperties():Properties{

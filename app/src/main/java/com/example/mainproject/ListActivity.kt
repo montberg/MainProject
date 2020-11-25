@@ -4,26 +4,27 @@ package com.example.mainproject
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.provider.ContactsContract
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
-import com.yandex.mapkit.geometry.Point
-import com.yandex.runtime.image.ImageProvider
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ListView
+import android.widget.TextView
 
-import java.io.StringReader
-import java.lang.Exception
-import java.net.URL
 
 var ArrayOfPlatforms:Array<Platform> = arrayOf()
 class ListActivity : OptionsMenu(), DataBase {
     lateinit var adapter:PlatformAdapter
     lateinit var platformlistview:ListView
+    lateinit var txtFind:EditText
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.list_activity)
         ArrayOfPlatforms = getPlatform()
+        txtFind = findViewById(R.id.txtFind)
         platformlistview = findViewById(R.id.platformList)
         adapter = PlatformAdapter(this)
         platformlistview.adapter = adapter
