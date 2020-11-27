@@ -15,7 +15,6 @@ import java.sql.ResultSet
 import java.sql.Statement
 import java.util.*
 
-
 class LoginActivity : AppCompatActivity(), DataBase {
     private lateinit var txtPassword:EditText
     private lateinit var txtLogin: EditText
@@ -65,19 +64,15 @@ class LoginActivity : AppCompatActivity(), DataBase {
             }
 
         }
-
-
-
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
-
-
-        btnLogin.setOnClickListener {
+        btnLogin.setOnClickListener{
 
             if(isOnline(this)){
             if(txtLogin.length() != 0 && txtPassword.length() != 0) {
                 try {
-                    val login = txtLogin.text.toString()
+                    var login: String? = null
+                    login = txtLogin.text.toString()
                     val password = txtPassword.text.toString()
                     dataBaseConnection(login, password)
                 } catch (e: Exception) {
@@ -95,17 +90,18 @@ class LoginActivity : AppCompatActivity(), DataBase {
     }
 
     private fun dataBaseConnection(login: String, password: String){
+        val editor = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE).edit()
         if(checkUser(login, password)) {
-
-                val editor = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE).edit()
                 editor.putBoolean("isLoggedIn", true)
+                editor.putString("login", login)
                 editor.apply()
-
                 val loginSuccess = Intent(this, MapActivity::class.java)
                 startActivity(loginSuccess)
                 finish()
             }
             else{
+                editor.putBoolean("isLoggedIn", false)
+                editor.putString("login", null)
                 Toast.makeText(this, "Логин или пароль введены неверно.", Toast.LENGTH_SHORT).show()
             }
     }

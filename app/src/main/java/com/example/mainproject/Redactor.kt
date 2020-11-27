@@ -34,6 +34,8 @@ class Redactor : AppCompatActivity(), DataBase {
         setContentView(R.layout.activity_redactor)
         findAllElements()
         val platform = intent.getSerializableExtra("Platform") as Platform
+        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val login = prefs.getString("login", null)
         listofcontainers = platform.Containersarray?.toMutableList()!!
         txtAddress.setText(platform.Address)
         txtTipOsnovania.setText(platform.BaseType)
@@ -111,7 +113,7 @@ class Redactor : AppCompatActivity(), DataBase {
                 lat = platform.Lat
                 lng = platform.Lng
             }
-            val newPlatform = Platform(platform.Id, lat, lng, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray)
+            val newPlatform = Platform(platform.Id, lat, lng, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray, login)
             try{
                 insertDataToTable(newPlatform, platform.Id)
                 Toast.makeText(this, "Площадка успешно изменена", Toast.LENGTH_LONG).show()

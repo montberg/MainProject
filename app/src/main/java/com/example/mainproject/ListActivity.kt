@@ -15,7 +15,7 @@ import android.widget.ListView
 import android.widget.TextView
 
 
-var ArrayOfPlatforms:Array<Platform> = arrayOf()
+var ArrayOfPlatforms:MutableList<Platform> = mutableListOf()
 class ListActivity : OptionsMenu(), DataBase {
     lateinit var adapter:PlatformAdapter
     lateinit var platformlistview:ListView

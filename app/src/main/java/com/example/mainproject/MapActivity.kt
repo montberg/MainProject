@@ -7,9 +7,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.widget.Button
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
@@ -21,10 +21,10 @@ import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
+import java.lang.Exception
 
 
 open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
-    private val TAG: String = this.javaClass.simpleName
     private val TARGET_LOCATION = Point(45.042529, 38.975963)
     private lateinit var mapview:MapView
     private lateinit var getMyLocation:Button
@@ -35,6 +35,7 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
         MapKitFactory.initialize(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
+
         if (ActivityCompat.checkSelfPermission(
                         this,
                         Manifest.permission.ACCESS_FINE_LOCATION
@@ -51,27 +52,31 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
         val createPoint: Button = findViewById(R.id.createPoint)
         mapview = findViewById(R.id.map)
         getMyLocation = findViewById(R.id.getMyLocation)
-        val startTime = System.nanoTime()
-        ArrayOfPlatforms = getPlatform()
-        val estimatedTime = System.nanoTime() - startTime
-        Log.i(TAG, estimatedTime.toString())
-        ArrayOfPlatforms.forEach { p ->
-            mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
+        val positions = getPlatformPos()
+        positions.forEach{
+            mapview.map.mapObjects.addPlacemark(Point(it[0].toDouble(), it[1].toDouble()), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
         }
         moveCamera(TARGET_LOCATION, 11F)
         createPoint.setOnClickListener{
+            try{
             val lat: Double = mapview.map.cameraPosition.target.latitude
             val lng: Double = mapview.map.cameraPosition.target.longitude
             val goToPointProps = Intent(this, PointProperties::class.java)
+            goToPointProps.putExtra(PointProperties.platformLAT, userLocationLayer.cameraPosition()!!.target.latitude)
+            goToPointProps.putExtra(PointProperties.platformLNG, userLocationLayer.cameraPosition()!!.target.longitude)
             goToPointProps.putExtra(PointProperties.LAT, lat)
             goToPointProps.putExtra(PointProperties.LNG, lng)
-            startActivity(goToPointProps)
+            startActivity(goToPointProps)}
+            catch (e:Exception){
+                Toast.makeText(this, "Нужно активировать геолокацию", Toast.LENGTH_SHORT).show()
+            }
         }
         userLocationLayer = MapKitFactory.getInstance().createUserLocationLayer(mapview.mapWindow)
         userLocationLayer.isVisible = true
         userLocationLayer.setObjectListener(this);
         getMyLocation.setOnClickListener {
-            userLocationLayer.cameraPosition()?.target?.let { it1 -> moveCamera(it1, 18F) }
+            userLocationLayer.cameraPosition()?.target?.let { it1 -> moveCamera(it1, 18F)
+            }
         }
     }
     override fun onResume() {

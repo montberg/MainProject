@@ -1,12 +1,13 @@
 package com.example.mainproject
 
+import org.firebirdsql.management.User
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.Statement
 import java.util.*
 
-var URL = "jdbc:firebirdsql://192.168.0.105:3050/e:/data/DATABASE.FDB" //URL до бд в виде jdbc:firebirdsql://<IP-адрес либо сайт>:<порт>/<полный путь до БД>
+var URL = "jdbc:firebirdsql://62.33.36.198:4100/c:/data/DATABASE.FDB" //URL до бд в виде jdbc:firebirdsql://<IP-адрес либо сайт>:<порт>/<полный путь до БД>
 
 interface DataBase {
     fun getConnectionProperties():Properties{
@@ -37,9 +38,9 @@ interface DataBase {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         var lastID = 0
         val statement: Statement = connection.createStatement()
-        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount) " +
+        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin) " +
                 "VALUES(${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}) returning id;"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}') returning id;"
             val dataBaseResponse: ResultSet = statement.executeQuery(strSQL)
             while(dataBaseResponse.next()) {
                 lastID = dataBaseResponse.getInt(1)
@@ -63,9 +64,9 @@ interface DataBase {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val lastID:Int = id
         val statement: Statement = connection.createStatement()
-        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount) " +
+        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin) " +
                 "VALUES(${lastID}, ${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}) MATCHING(id);"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}') MATCHING(id);"
         statement.execute(strSQL)
         strSQL = "delete from container where parent_id = $lastID;"
         statement.execute(strSQL)
@@ -75,7 +76,7 @@ interface DataBase {
         }
         connection.close()
     }
-    fun getPlatform(): Array<Platform> {
+    fun getPlatform(): MutableList<Platform> {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val statement: Statement = connection.createStatement()
         val getPlatforms = "select*from platform"
@@ -92,7 +93,7 @@ interface DataBase {
             val Boolwithrec = response.getBoolean(8)
             val Boolwithfence = response.getBoolean(9)
             val Fencemat = response.getString(10)
-
+            val UserLogin = response.getString(11)
             val getContainersQuery = "select * from container where parent_id = '${id}'"
             val connection2: Connection = DriverManager.getConnection(URL, getConnectionProperties())
             val statement2: Statement = connection2.createStatement()
@@ -105,10 +106,26 @@ interface DataBase {
                 tempContainerList.add(container)
             }
             connection2.close()
-            val tempPlatform = Platform(id,Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat.toString(), tempContainerList.toTypedArray())
+            val tempPlatform = Platform(id,Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat.toString(), tempContainerList.toTypedArray(), UserLogin)
             PlatformArray.add(tempPlatform)
         }
         connection.close()
-        return PlatformArray.toTypedArray()
+        return PlatformArray
+    }
+    fun getPlatformPos(): List<List<Float>> {
+        val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
+        val statement: Statement = connection.createStatement()
+        val getPlatforms = "select lat, lng from platform"
+        val response:ResultSet = statement.executeQuery(getPlatforms)
+        val PlatformPosArray:MutableList<MutableList<Float>> = mutableListOf()
+        val PlatformPos:MutableList<Float> = mutableListOf()
+        while(response.next()){
+            PlatformPos.clear()
+            PlatformPos.add(response.getFloat(1))
+            PlatformPos.add( response.getFloat(2))
+            PlatformPosArray.add(PlatformPos)
+        }
+        connection.close()
+        return PlatformPosArray
     }
 }

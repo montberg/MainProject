@@ -12,7 +12,8 @@ class Platform (id:Int,
                boolWithRec:Boolean = false,
                boolWithFence:Boolean = false,
                fenceMat:String? = null,
-               containersArray:Array<Container>? = arrayOf()
+               containersArray:Array<Container>? = arrayOf(),
+                userLogin:String?
 ): Serializable {
     val Id = id
     val Lat = lat
@@ -25,4 +26,5 @@ class Platform (id:Int,
     val Boolwithfence = boolWithFence
     val Fencemat = fenceMat
     val Containersarray = containersArray
+    val UserLogin = userLogin
 }

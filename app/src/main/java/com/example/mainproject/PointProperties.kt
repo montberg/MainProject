@@ -21,7 +21,11 @@ class PointProperties : AppCompatActivity(), DataBase{
     companion object {
         const val LAT = "lat"
         const val LNG = "lng"
+        const val platformLAT = "platformlat"
+        const val platformLNG = "platformlng"
+        const val userLogin = "userLogin"
     }
+    private var PREFERENCES_NAME = "loginPrefs"
     lateinit var txtAddress: AutoCompleteTextView
     lateinit var txtTipOsnovania : AutoCompleteTextView
     lateinit var txtPloshad : EditText
@@ -41,6 +45,10 @@ class PointProperties : AppCompatActivity(), DataBase{
         val rubbishType = listOf("ТКО", "Негабарит", "Стекло", "Бумага", "Пищевые отходы")
         val lng = intent.getDoubleExtra(LAT, 0.0)
         val lat = intent.getDoubleExtra(LNG, 0.0)
+        val platformlng = intent.getDoubleExtra(platformLAT, 0.0)
+        val platformlat = intent.getDoubleExtra(platformLNG, 0.0)
+        val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val login = prefs.getString("login", null)
         val apiKey = "18e0a04c-f1d7-4665-af58-499ad280cd46"
         val geocodeURL = "https://geocode-maps.yandex.ru/1.x/?apikey=$apiKey&format=json&geocode=$lat,$lng"
         val apiResponse = URL(geocodeURL).readText()
@@ -110,7 +118,7 @@ class PointProperties : AppCompatActivity(), DataBase{
             }
         }
 
-        containerListView.setOnItemClickListener { parent, view, position, id ->
+        containerListView.setOnItemClickListener { _, _, position, _ ->
             val builder = androidx.appcompat.app.AlertDialog.Builder(this@PointProperties)
             builder.setMessage("Удалить контейнер?")
                     .setCancelable(true)
@@ -125,12 +133,11 @@ class PointProperties : AppCompatActivity(), DataBase{
             alert.show()
         }
 
-
         btnAddPlatform.setOnClickListener {
             try{
             val address = txtAddress.text.toString()
-            val latitude = lat
-            val longitude = lng
+            val latitude = platformlat
+            val longitude = platformlng
             val baseType = txtTipOsnovania.text.toString()
             val square = txtPloshad.text.toString().toDouble()
             val boolIsIncreaseble = checkUvelichitPloshad.isChecked
@@ -138,7 +145,7 @@ class PointProperties : AppCompatActivity(), DataBase{
             val boolWithFence = checkOgrazhdenie.isChecked
             val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
             val containersArray: Array<Container>? = if(containerList.isEmpty()) arrayOf() else containerList.toTypedArray()
-            val newPlatform = Platform(0, latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray)
+            val newPlatform = Platform(0, latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray, login)
             try{
                 insertDataToTable(newPlatform)
                 Toast.makeText(this, "Площадка успешно добавлена", Toast.LENGTH_LONG).show()
