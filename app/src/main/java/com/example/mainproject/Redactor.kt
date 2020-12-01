@@ -1,17 +1,20 @@
 package com.example.mainproject
 
-import android.content.Context
 import android.content.Intent
-import android.graphics.Point
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.net.URL
+
 
 lateinit var listofcontainers: MutableList<Container>
 class Redactor : AppCompatActivity(), DataBase {
@@ -26,14 +29,21 @@ class Redactor : AppCompatActivity(), DataBase {
     lateinit var txtMaterialOgrazhdenia : AutoCompleteTextView
     lateinit var btnAddContainer : Button
     lateinit var btnCommitChanges : Button
-    lateinit var containerListView: ListView
+    lateinit var containerListView: RecyclerView
     lateinit var showOnMap: Button
     lateinit var deletePlatform:Button
+    lateinit var btnAddPhoto: FloatingActionButton
+    lateinit var imageList:MutableList<Bitmap>
+    lateinit var picList:RecyclerView
+    lateinit var mAdapter:PictureListAdapter
+    lateinit var adapter:ContainerAdapter
+    lateinit var imageBase64list:ByteArray
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_redactor)
         findAllElements()
-        val platform = intent.getSerializableExtra("Platform") as Platform
+        val platformID = intent.getSerializableExtra("platformID") as Int
+        val platform:Platform = getFullPlatformInfo(platformID)
         val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
         val login = prefs.getString("login", null)
         listofcontainers = platform.Containersarray?.toMutableList()!!
@@ -44,7 +54,7 @@ class Redactor : AppCompatActivity(), DataBase {
         checkSReconstrukcjei.isChecked = platform.Boolwithrec
         checkOgrazhdenie.isChecked = platform.Boolwithfence
         txtMaterialOgrazhdenia.setText(platform.Fencemat)
-        val adapter = ContainerAdapter(this)
+        var adapter = ContainerAdapter(listofcontainers)
         containerListView.adapter = adapter
         if(checkUvelichitPloshad.isChecked) checkSReconstrukcjei.visibility = View.VISIBLE
         else checkSReconstrukcjei.visibility = View.GONE
@@ -60,20 +70,32 @@ class Redactor : AppCompatActivity(), DataBase {
             else showHide(txtMaterialOgrazhdenia)
             txtMaterialOgrazhdenia.text = null
         }
-        containerListView.setOnItemClickListener { _, _, position, _ ->
-            val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-            builder.setMessage("Удалить контейнер?")
-                    .setCancelable(true)
-                    .setPositiveButton("Да") { _, _ ->
-                        listofcontainers.removeAt(position)
-                        adapter.notifyDataSetChanged()
-                    }
-                    .setNegativeButton("Нет") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-            val alert = builder.create()
-            alert.show()
+        val imageBase64lists = platform.Base64images?.split(", ")
+        val e = mutableListOf<Byte>()
+        imageBase64lists?.forEach {
+            e.add(it.toByte())
         }
+        imageBase64list = e.toByteArray()
+        imageList = mutableListOf()
+        val bmp:Bitmap? = BitmapFactory.decodeByteArray(e.toByteArray(), 0, e.size)
+        if(bmp!= null) imageList.add(bmp)
+        val recyclerView = findViewById<RecyclerView>(R.id.picList)
+        mAdapter = PictureListAdapter(imageList, imageBase64list)
+        val mLayoutManager = LinearLayoutManager(applicationContext)
+        mLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+        recyclerView.layoutManager = mLayoutManager
+        recyclerView.itemAnimator = DefaultItemAnimator()
+        recyclerView.adapter = mAdapter
+
+        val containerListView = findViewById<RecyclerView>(R.id.containerListView)
+        containerList = platform.Containersarray
+        adapter = ContainerAdapter(containerList)
+        val cLayoutManager = LinearLayoutManager(applicationContext)
+        cLayoutManager.orientation = LinearLayoutManager.VERTICAL
+        containerListView.layoutManager = cLayoutManager
+        containerListView.itemAnimator = DefaultItemAnimator()
+        containerListView.adapter = adapter
+
         deletePlatform.setOnClickListener {
             try{
                 val builder = androidx.appcompat.app.AlertDialog.Builder(this)
@@ -89,7 +111,7 @@ class Redactor : AppCompatActivity(), DataBase {
                 val alert = builder.create()
                 alert.show()
                 true
-            }catch (e:Exception){
+            }catch (e: Exception){
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
                 false
             }
@@ -102,13 +124,13 @@ class Redactor : AppCompatActivity(), DataBase {
             val boolWithRec = checkSReconstrukcjei.isChecked
             val boolWithFence = checkOgrazhdenie.isChecked
             val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
-            val containersArray: Array<Container>? = if(listofcontainers.isEmpty()) arrayOf() else listofcontainers.toTypedArray()
+            val containersArray: MutableList<Container>? = if(listofcontainers.isEmpty()) mutableListOf() else listofcontainers
             val lat:Double
             val lng:Double
+            val images:MutableList<String> // FIXME: 01.12.2020
             if(newPos!=null){
                 lat = newPos!!.latitude
                 lng = newPos!!.longitude
-
             }else{
                 lat = platform.Lat
                 lng = platform.Lng
@@ -137,18 +159,6 @@ class Redactor : AppCompatActivity(), DataBase {
             startActivity(i)
         }
     }
-    class ContainerAdapter(ctx: Context) : ArrayAdapter<Container>(ctx, android.R.layout.simple_list_item_2, listofcontainers){
-        override fun getView(position: Int, ConvertView: View?, parent: ViewGroup): View {
-            var convertView = ConvertView
-            val container: Container? = getItem(position)
-            if (convertView == null) {
-                convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_2, null)
-            }
-            (convertView!!.findViewById<View>(android.R.id.text1) as TextView).text = container!!.RubbishType
-            (convertView.findViewById<View>(android.R.id.text2) as TextView).text = container.Volume.toString()
-            return convertView
-        }
-    }
     private fun showHide(view: View) {
         if (view.visibility == View.VISIBLE){
             view.visibility = View.GONE
@@ -157,6 +167,7 @@ class Redactor : AppCompatActivity(), DataBase {
         }
     }
     private fun findAllElements(){
+        picList = findViewById(R.id.picList)
         txtAddress = findViewById(R.id.chooseAddress)
         showOnMap = findViewById(R.id.showOnMap)
         txtTipOsnovania = findViewById(R.id.autoTipOsnovania)

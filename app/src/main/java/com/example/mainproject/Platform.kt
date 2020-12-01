@@ -1,9 +1,10 @@
 package com.example.mainproject
 
 import java.io.Serializable
+import java.sql.Blob
 
-class Platform (id:Int,
-                lat:Double,
+class Platform(id:Int,
+               lat:Double,
                lng:Double,
                address:String,
                baseType:String,
@@ -12,8 +13,9 @@ class Platform (id:Int,
                boolWithRec:Boolean = false,
                boolWithFence:Boolean = false,
                fenceMat:String? = null,
-               containersArray:Array<Container>? = arrayOf(),
-                userLogin:String?
+               containersArray:MutableList<Container>? = mutableListOf(),
+               userLogin:String?,
+               base64images: String? = null
 ): Serializable {
     val Id = id
     val Lat = lat
@@ -27,4 +29,5 @@ class Platform (id:Int,
     val Fencemat = fenceMat
     val Containersarray = containersArray
     val UserLogin = userLogin
+    val Base64images = base64images
 }

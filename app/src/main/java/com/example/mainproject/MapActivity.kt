@@ -35,7 +35,7 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
         MapKitFactory.initialize(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
-
+        actionBar?.setDisplayShowTitleEnabled(false);
         if (ActivityCompat.checkSelfPermission(
                         this,
                         Manifest.permission.ACCESS_FINE_LOCATION
@@ -47,15 +47,15 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
             val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
             ActivityCompat.requestPermissions(this, permissions, 0)
         }
-
         mypos = Point(0.0, 0.0)
         val createPoint: Button = findViewById(R.id.createPoint)
         mapview = findViewById(R.id.map)
         getMyLocation = findViewById(R.id.getMyLocation)
-        val positions = getPlatformPos()
-        positions.forEach{
-            mapview.map.mapObjects.addPlacemark(Point(it[0].toDouble(), it[1].toDouble()), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
-        }
+        mapview.map.mapObjects.clear()
+//        val platforms = getPlatform()
+      //  platforms.forEach{
+      //     mapview.map.mapObjects.addPlacemark(Point(it.Lng, it.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
+     //   }
         moveCamera(TARGET_LOCATION, 11F)
         createPoint.setOnClickListener{
             try{
@@ -81,10 +81,10 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
     }
     override fun onResume() {
         mapview.map.mapObjects.clear()
-        ArrayOfPlatforms = getPlatform()
-        ArrayOfPlatforms.forEach { p ->
-            mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
-        }
+   //     ArrayOfPlatforms = getPlatform()
+    //    ArrayOfPlatforms.forEach { p ->
+    //    mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
+    //    }
         super.onResume()
     }
         fun moveCamera(point: Point, zoom: Float){
@@ -97,7 +97,6 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
     override fun onObjectAdded(userLocationView: UserLocationView) {
         userLocationView.pin.setIcon(ImageProvider.fromResource(this, R.drawable.ic_marker_myposition))
         userLocationView.arrow.setIcon(ImageProvider.fromResource(this, R.drawable.ic_marker_myposition))
-        // Обозначается точность определения местоположения с помощью окружности
         userLocationView.accuracyCircle.fillColor = Color.BLUE
 
     }

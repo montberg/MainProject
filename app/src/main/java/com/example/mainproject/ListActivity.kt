@@ -1,63 +1,86 @@
 package com.example.mainproject
 
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.ListView
-import android.widget.TextView
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import java.util.*
+import kotlin.collections.ArrayList
 
 
-var ArrayOfPlatforms:MutableList<Platform> = mutableListOf()
-class ListActivity : OptionsMenu(), DataBase {
+var ArrayOfPlatforms:MutableList<PlatformInfo> = mutableListOf()
+class ListActivity : OptionsMenu(), DataBase, SwipeRefreshLayout.OnRefreshListener {
+
     lateinit var adapter:PlatformAdapter
-    lateinit var platformlistview:ListView
+    lateinit var platformlistview:RecyclerView
     lateinit var txtFind:EditText
+    lateinit var mSwipeRefresh:SwipeRefreshLayout
+    lateinit var filteredList:MutableList<PlatformInfo>
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.list_activity)
         ArrayOfPlatforms = getPlatform()
         txtFind = findViewById(R.id.txtFind)
         platformlistview = findViewById(R.id.platformList)
-        adapter = PlatformAdapter(this)
+        adapter = PlatformAdapter(ArrayOfPlatforms)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        layoutManager.orientation = LinearLayoutManager.VERTICAL
+        platformlistview.layoutManager = layoutManager
+        platformlistview.itemAnimator = DefaultItemAnimator()
         platformlistview.adapter = adapter
-        platformlistview.setOnItemClickListener { _, _, position, _ ->
-            val a = adapter.getItem(position)!!
-            val redactor = Intent(this, Redactor::class.java)
-            redactor.putExtra("Platform", a)
-            startActivity(redactor)
-        }
+
+        mSwipeRefresh =  findViewById(R.id.swipe)
+        mSwipeRefresh.setOnRefreshListener(this)
+
+        txtFind.addTextChangedListener(object:TextWatcher{
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if(s.toString()!=""){
+                    filteredList = ArrayList()
+                    for(item in ArrayOfPlatforms) {
+                        if(item.Address.toLowerCase(Locale.ROOT).replace(",", "").replace(" улица", "").contains(s.toString().toLowerCase(Locale.ROOT).replace(",", "")))
+                            filteredList.add(item)
+                        setupRecyclerView(filteredList)
+                    }
+                }else {
+                    setupRecyclerView(ArrayOfPlatforms)
+                }
+            }
+            private fun setupRecyclerView(list: MutableList<PlatformInfo>) {
+                adapter = PlatformAdapter(list)
+                //setting up layout manager to recyclerView
+                platformlistview.layoutManager = LinearLayoutManager(applicationContext)
+                platformlistview.setHasFixedSize(true)
+
+                //setting adapter to recyclerView
+                platformlistview.adapter = adapter
+            }
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+        })
     }
     override fun onResume() {
         ArrayOfPlatforms = getPlatform()
-        adapter = PlatformAdapter(this)
-        platformlistview.adapter = adapter
         adapter.notifyDataSetChanged()
         super.onResume()
     }
-}
-class PlatformAdapter(ctx: Context) : ArrayAdapter<Platform>(ctx, android.R.layout.simple_list_item_2, ArrayOfPlatforms){
-    override fun getView(position: Int, ConvertView: View?, parent: ViewGroup): View {
-        var convertView: View? = ConvertView
-        val platform: Platform? = getItem(position)
-        if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_2, null)
-        }
-        if (platform != null) {
-            (convertView!!.findViewById<View>(android.R.id.text1) as TextView).text = platform.Address
-        }
-        if (convertView != null) {
-            if (platform != null) {
-                (convertView.findViewById<View>(android.R.id.text2) as TextView).text = "${platform.Containersarray?.size.toString()} контейнера|ов"
-            }
-        }
-        return convertView!!
+
+    override fun onRefresh() {
+        Handler().postDelayed({ //Останавливаем обновление:
+            val arrayOfPlatforms = getPlatform()
+            ArrayOfPlatforms = arrayOfPlatforms
+            val Adapter = PlatformAdapter(arrayOfPlatforms)
+            platformlistview.adapter = Adapter
+            Adapter.notifyDataSetChanged()
+            mSwipeRefresh.isRefreshing = false
+        }, 1000)
     }
 }

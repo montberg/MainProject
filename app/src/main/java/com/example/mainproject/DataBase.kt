@@ -1,6 +1,5 @@
 package com.example.mainproject
 
-import org.firebirdsql.management.User
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -34,13 +33,14 @@ interface DataBase {
         connection.close()
         return false
     }
-    fun insertDataToTable(platform:Platform) {
+
+    fun insertDataToTable(platform: Platform) {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         var lastID = 0
         val statement: Statement = connection.createStatement()
-        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin) " +
+        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, photo) " +
                 "VALUES(${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}') returning id;"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', '${platform.Base64images}') returning id;"
             val dataBaseResponse: ResultSet = statement.executeQuery(strSQL)
             while(dataBaseResponse.next()) {
                 lastID = dataBaseResponse.getInt(1)
@@ -53,20 +53,20 @@ interface DataBase {
         }
             connection.close()
     }
-    fun deletePlatform(id:Int){
+    fun deletePlatform(id: Int){
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val statement: Statement = connection.createStatement()
         val deleteQuery = "delete from platform where id = $id"
         statement.execute(deleteQuery)
         connection.close()
     }
-    fun insertDataToTable(platform:Platform, id:Int) {
+    fun insertDataToTable(platform: Platform, id: Int){
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val lastID:Int = id
         val statement: Statement = connection.createStatement()
-        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin) " +
+        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, photo) " +
                 "VALUES(${lastID}, ${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}') MATCHING(id);"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', ${platform.Base64images}) MATCHING(id);"
         statement.execute(strSQL)
         strSQL = "delete from container where parent_id = $lastID;"
         statement.execute(strSQL)
@@ -76,14 +76,30 @@ interface DataBase {
         }
         connection.close()
     }
-    fun getPlatform(): MutableList<Platform> {
+    fun getPlatform(): MutableList<PlatformInfo> {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val statement: Statement = connection.createStatement()
-        val getPlatforms = "select*from platform"
+        val getPlatforms = "select id, lat, lng, address from platform"
         val response:ResultSet = statement.executeQuery(getPlatforms)
-        val PlatformArray:MutableList<Platform> = arrayListOf()
+        val PlatformArray:MutableList<PlatformInfo> = arrayListOf()
         while(response.next()){
             val id = response.getInt(1)
+            val Lat = response.getFloat(2)
+            val Lng =  response.getFloat(3)
+            val Address = response.getString(4)
+            val tempPlatform = PlatformInfo(id, Lat.toDouble(), Lng.toDouble(), Address.toString())
+            PlatformArray.add(tempPlatform)
+        }
+        connection.close()
+        return PlatformArray
+    }
+    fun getFullPlatformInfo(id: Int): Platform {
+        val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
+        val statement: Statement = connection.createStatement()
+        val getPlatforms = "select * from platform where id = $id"
+        val response:ResultSet = statement.executeQuery(getPlatforms)
+        while(response.next()){
+            val Id = response.getInt(1)
             val Lat = response.getFloat(2)
             val Lng =  response.getFloat(3)
             val Address = response.getString(4)
@@ -94,38 +110,26 @@ interface DataBase {
             val Boolwithfence = response.getBoolean(9)
             val Fencemat = response.getString(10)
             val UserLogin = response.getString(11)
+            val Base64images = response.getString(13)
             val getContainersQuery = "select * from container where parent_id = '${id}'"
             val connection2: Connection = DriverManager.getConnection(URL, getConnectionProperties())
-            val statement2: Statement = connection2.createStatement()
+            val statement2: Statement = connection.createStatement()
             val containersListResponse = statement2.executeQuery(getContainersQuery)
             val tempContainerList:MutableList<Container> = arrayListOf()
+
             while(containersListResponse.next()) {
                 val rubbishtype = containersListResponse.getString(2)
                 val volume = containersListResponse.getString(3)
                 val container = Container(rubbishtype, volume.toDouble())
                 tempContainerList.add(container)
             }
+
+
+            val tempPlatform = Platform(Id, Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat, tempContainerList, UserLogin.toString(), Base64images)
             connection2.close()
-            val tempPlatform = Platform(id,Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat.toString(), tempContainerList.toTypedArray(), UserLogin)
-            PlatformArray.add(tempPlatform)
+            connection.close()
+            return tempPlatform
         }
-        connection.close()
-        return PlatformArray
-    }
-    fun getPlatformPos(): List<List<Float>> {
-        val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
-        val statement: Statement = connection.createStatement()
-        val getPlatforms = "select lat, lng from platform"
-        val response:ResultSet = statement.executeQuery(getPlatforms)
-        val PlatformPosArray:MutableList<MutableList<Float>> = mutableListOf()
-        val PlatformPos:MutableList<Float> = mutableListOf()
-        while(response.next()){
-            PlatformPos.clear()
-            PlatformPos.add(response.getFloat(1))
-            PlatformPos.add( response.getFloat(2))
-            PlatformPosArray.add(PlatformPos)
-        }
-        connection.close()
-        return PlatformPosArray
+        return Platform(-1, 0.0, 0.0, "", "", 0.0, false, false, false, null, mutableListOf(), null)
     }
 }

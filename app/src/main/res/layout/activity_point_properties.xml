@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,45 +7,41 @@
     tools:context=".PointProperties"
     android:scrollbars="vertical"
     android:orientation="vertical">
-<ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/scroll"
-    >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <RelativeLayout
         android:id="@+id/relativeLayout2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginHorizontal="20dp"
->
-
-        <TextView
-            android:id="@+id/Ploshadka"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Площадка"
-            android:textSize="25sp" />
-
-        <TextView
-            android:id="@+id/lblAdress"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/relativeLayout3"
+    android:layout_marginHorizontal="10dp">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/picList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/Ploshadka"
-            android:text="@string/Address"
-            android:textSize="17sp" />
+            android:orientation="vertical" />
 
         <AutoCompleteTextView
             android:id="@+id/chooseAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/lblAdress"
+            android:layout_below="@id/picList"
             android:hint="Адрес"
             android:imeActionLabel="Done"
             android:imeOptions="actionDone"
-
             android:inputType="text|textMultiLine"
             android:textSize="17sp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Тип основания"
+        android:layout_below="@id/chooseAddress"
+        android:id="@+id/tip"/>
 
         <AutoCompleteTextView
             android:id="@+id/autoTipOsnovania"
@@ -54,16 +49,21 @@
             android:completionThreshold="1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/chooseAddress"
+            android:layout_below="@id/tip"
             android:hint="Тип основания"
             android:imeActionLabel="Done"
             android:imeOptions="actionDone"/>
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Площадь"
+        android:layout_below="@id/autoTipOsnovania"
+        android:id="@+id/ploshad"/>
         <EditText
             android:id="@+id/txtPloshad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/autoTipOsnovania"
+            android:layout_below="@id/ploshad"
             android:hint="Площадь, м^2"
             android:inputType="numberDecimal"
             android:textSize="17sp" />
@@ -73,14 +73,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/txtPloshad"
-            android:text="Возможно увеличить площадь?" />
+            android:text="Возможность расширения" />
 
         <CheckBox
             android:id="@+id/checkSReconstrukcjei"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/checkUvelichitPloshad"
-            android:text="С реконструкцией"
+            android:text="Необходима реконструкция"
             android:visibility="gone" />
 
         <CheckBox
@@ -88,7 +88,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/checkSReconstrukcjei"
-            android:text="Есть ли ограждение?" />
+            android:text="Наличие ограждения" />
 
         <AutoCompleteTextView
             android:id="@+id/autoOgrazhdenie"
@@ -100,20 +100,12 @@
             android:textSize="17sp"
             android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/Konteineri"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/autoOgrazhdenie"
-            android:text="Контейнеры"
-            android:textSize="25sp" />
-
-        <AutoCompleteTextView
+    <AutoCompleteTextView
             android:completionThreshold="1"
             android:id="@+id/autoTipMusora"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/Konteineri"
+            android:layout_below="@id/addContainer"
             android:hint="Тип мусора"
             android:textSize="17sp" />
 
@@ -125,32 +117,52 @@
             android:hint="Объем контейнеров"
             android:inputType="numberDecimal"
             android:textSize="17sp" />
-        <Button
-            android:id="@+id/addContainer"
-            android:layout_alignEnd="@id/autoTipMusora"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/autoOgrazhdenie"
-            android:text="Добавить" />
-    </RelativeLayout>
-</ScrollView>
-<RelativeLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_below="@id/scroll">
-
-    <ListView
-        android:id="@+id/containerListView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/addPlatform"
-        android:orientation="vertical" />
     <Button
-        android:id="@+id/addPlatform"
+        android:id="@+id/addContainer"
+        android:layout_alignEnd="@id/autoTipMusora"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
+        android:background="@drawable/loginbutton"
+        android:textColor="@color/white"
+        android:textSize="8pt"
+        android:layout_below="@+id/autoOgrazhdenie"
+        android:text="Добавить" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/autoObjemKonteinerov">
+        </RelativeLayout>
+</RelativeLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/containerListView"
+                android:layout_below="@id/relativeLayout3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="Добавить площадку" />
-</RelativeLayout>
-</RelativeLayout>
+        android:layout_height="wrap_content"
+        android:layout_below="@id/relativeLayout2">
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="Добавить фото"
+            android:src="@drawable/ic_action_addphoto" />
+            <Button
+                android:id="@+id/addPlatform"
+                android:layout_below="@id/btnAddPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginBottom="5dp"
+                android:text="Добавить площадку" />
+    </RelativeLayout>
+    </RelativeLayout>
+</androidx.core.widget.NestedScrollView>

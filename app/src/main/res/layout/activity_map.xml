@@ -17,7 +17,7 @@
         android:layout_marginTop="15dp"
         android:textSize="4pt"
         android:id="@+id/getMyLocation"
-        android:text="На мою позицию"
+        android:text="Моя позиция"
         android:layout_alignParentEnd="true"
         />
 

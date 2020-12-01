@@ -5,14 +5,20 @@
     android:layout_height="wrap_content"
     android:layout_width="match_parent">
     <item
+        app:showAsAction="always"
+        android:icon="@drawable/logo"
+        android:title="">
+    </item>
+
+    <item
         android:id="@+id/itemGoToMap"
-        app:showAsAction="ifRoom"
-        android:title="К карте">
+        app:showAsAction="always"
+        android:title="Карта">
     </item>
     <item
         android:id="@+id/itemGoToList"
-        app:showAsAction="ifRoom"
-        android:title="К списку">
+        app:showAsAction="always"
+        android:title="Реестр">
     </item>
     <item
         android:id="@+id/itemLogOut"
