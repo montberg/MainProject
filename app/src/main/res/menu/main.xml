@@ -9,21 +9,25 @@
         android:icon="@drawable/logo"
         android:title="">
     </item>
+    <group>
 
-    <item
-        android:id="@+id/itemGoToMap"
-        app:showAsAction="always"
-        android:title="Карта">
-    </item>
-    <item
-        android:id="@+id/itemGoToList"
-        app:showAsAction="always"
-        android:title="Реестр">
-    </item>
-    <item
-        android:id="@+id/itemLogOut"
-        android:icon="@drawable/ic_menu_dots"
-        android:title="Меню"
-        app:showAsAction="always">
-    </item>
+
+        <item
+            android:id="@+id/itemGoToMap"
+            app:showAsAction="always"
+            android:title="Карта">
+        </item>
+        <item
+            android:id="@+id/itemGoToList"
+            app:showAsAction="always"
+            android:title="Реестр">
+        </item>
+        <item
+            android:id="@+id/itemLogOut"
+            android:icon="@drawable/ic_menu_dots"
+            android:title="Меню"
+            app:showAsAction="always">
+        </item>
+    </group>
+
 </menu>

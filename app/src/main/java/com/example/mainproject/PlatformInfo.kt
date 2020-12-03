@@ -11,4 +11,5 @@ class PlatformInfo (id:Int,
     val Lat = lat
     val Lng = lng
     val Address = address
+
 }

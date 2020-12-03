@@ -1,5 +1,6 @@
 package com.example.mainproject
 
+import com.yandex.runtime.bindings.BytesHandler
 import java.io.Serializable
 import java.sql.Blob
 
@@ -12,10 +13,12 @@ class Platform(id:Int,
                boolIsIncreaseble:Boolean = false,
                boolWithRec:Boolean = false,
                boolWithFence:Boolean = false,
+               boolNaves:Boolean = false,
+               boolKGO:Boolean = false,
                fenceMat:String? = null,
                containersArray:MutableList<Container>? = mutableListOf(),
                userLogin:String?,
-               base64images: String? = null
+               base64images: MutableList<ByteArray> = mutableListOf()
 ): Serializable {
     val Id = id
     val Lat = lat
@@ -26,6 +29,8 @@ class Platform(id:Int,
     val Boolisincreaseble = boolIsIncreaseble
     val Boolwithrec = boolWithRec
     val Boolwithfence = boolWithFence
+    val BoolNaves = boolNaves
+    val BoolKGO = boolKGO
     val Fencemat = fenceMat
     val Containersarray = containersArray
     val UserLogin = userLogin

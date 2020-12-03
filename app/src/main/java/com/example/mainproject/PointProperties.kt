@@ -1,12 +1,11 @@
 package com.example.mainproject
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.provider.MediaStore
 import android.view.View
 import android.widget.*
@@ -16,9 +15,10 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.*
+import org.w3c.dom.Text
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
@@ -36,7 +36,6 @@ class PointProperties : AppCompatActivity(), DataBase{
         const val platformLNG = "platformlng"
         const val userLogin = "userLogin"
     }
-    lateinit var imageBase64list:ByteArray
     private var PREFERENCES_NAME = "loginPrefs"
     private val FILE_NAME = "photo.jpg"
     private lateinit var photoFile: File
@@ -50,17 +49,22 @@ class PointProperties : AppCompatActivity(), DataBase{
     lateinit var txtMaterialOgrazhdenia : AutoCompleteTextView
     lateinit var btnAddContainer : Button
     lateinit var btnAddPlatform : Button
-
-    lateinit var btnAddPhoto:FloatingActionButton
+    lateinit var btnAddPhoto:Button
     lateinit var imageList:MutableList<Bitmap>
     lateinit var picList:RecyclerView
     lateinit var mAdapter:PictureListAdapter
     lateinit var adapter:ContainerAdapter
+    lateinit var imageBase64list:MutableList<ByteArray>
+    lateinit var checkNaves:CheckBox
+    lateinit var checkKGO:CheckBox
+    lateinit var spisokkont:TextView
+    lateinit var photografii:TextView
+    @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_point_properties)
         findAllElements()
-        imageBase64list = byteArrayOf()
+        imageBase64list = mutableListOf()
         imageList = mutableListOf()
         val recyclerView = findViewById<RecyclerView>(R.id.picList)
         mAdapter = PictureListAdapter(imageList, imageBase64list)
@@ -75,12 +79,10 @@ class PointProperties : AppCompatActivity(), DataBase{
 
         adapter = ContainerAdapter(containerList)
         val cLayoutManager =LinearLayoutManager(applicationContext)
-        cLayoutManager.orientation = LinearLayoutManager.VERTICAL
+        cLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         containerListView.layoutManager = cLayoutManager
         containerListView.itemAnimator = DefaultItemAnimator()
         containerListView.adapter = adapter
-
-
 
         val baseType = listOf("Бетон", "Плита", "Щебень", "Отсутствует")
         val fenceMat = listOf("Металл", "Профнастил")
@@ -96,15 +98,18 @@ class PointProperties : AppCompatActivity(), DataBase{
         val apiResponse = URL(geocodeURL).readText()
         val txtAddressArray = getAddressLines(apiResponse)
         val tipOsnovaniaAdapter: ArrayAdapter<String> = ArrayAdapter<String>(
-                this, android.R.layout.simple_dropdown_item_1line, baseType)
+            this, android.R.layout.simple_dropdown_item_1line, baseType
+        )
         txtTipOsnovania.setAdapter(tipOsnovaniaAdapter)
 
         val og: ArrayAdapter<String> = ArrayAdapter<String>(
-                this, android.R.layout.simple_dropdown_item_1line, fenceMat)
+            this, android.R.layout.simple_dropdown_item_1line, fenceMat
+        )
         txtMaterialOgrazhdenia.setAdapter(og)
 
         val rt: ArrayAdapter<String> = ArrayAdapter<String>(
-                this, android.R.layout.simple_dropdown_item_1line, rubbishType)
+            this, android.R.layout.simple_dropdown_item_1line, rubbishType
+        )
         txtTipMusora.setAdapter(rt)
         txtTipOsnovania.setOnFocusChangeListener { _, hasFocus ->
             if(hasFocus) txtTipOsnovania.showDropDown()
@@ -150,7 +155,10 @@ class PointProperties : AppCompatActivity(), DataBase{
         }
         btnAddContainer.setOnClickListener {
             try{
-            val container = Container(txtTipMusora.text.toString(), txtObjemKonteinerov.text.toString().toDouble())
+            val container = Container(
+                txtTipMusora.text.toString(),
+                txtObjemKonteinerov.text.toString().toDouble()
+            )
             containerList.add(container)
             adapter.notifyDataSetChanged()
             } catch (e: Exception){
@@ -161,7 +169,11 @@ class PointProperties : AppCompatActivity(), DataBase{
         btnAddPhoto.setOnClickListener {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             photoFile = getPhotoFile(FILE_NAME)
-            val fileProvider = FileProvider.getUriForFile(this, "com.example.mainproject.fileprovider", photoFile)
+            val fileProvider = FileProvider.getUriForFile(
+                this,
+                "com.example.mainproject.fileprovider",
+                photoFile
+            )
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider)
             if(takePictureIntent.resolveActivity(this.packageManager)!= null){
                 startActivityForResult(takePictureIntent, REQUEST_CODE)
@@ -169,7 +181,11 @@ class PointProperties : AppCompatActivity(), DataBase{
                 Toast.makeText(this, "Невозможно открыть камеру", Toast.LENGTH_SHORT).show()
             }
         }
+
         btnAddPlatform.setOnClickListener {
+            btnAddPlatform.isClickable = false
+            btnAddPlatform.isEnabled = false
+            btnAddPlatform.setBackgroundResource(R.drawable.loginbutton2state)
             try{
             val address = txtAddress.text.toString()
             val latitude = platformlat
@@ -179,19 +195,54 @@ class PointProperties : AppCompatActivity(), DataBase{
             val boolIsIncreaseble = checkUvelichitPloshad.isChecked
             val boolWithRec = checkSReconstrukcjei.isChecked
             val boolWithFence = checkOgrazhdenie.isChecked
+            val boolNaves = checkNaves.isChecked
+            val boolKGO = checkKGO.isChecked
             val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
             val containersArray: MutableList<Container>? = if(containerList.isEmpty()) mutableListOf() else containerList
-                val base64images = if(imageBase64list.isEmpty()) null else imageBase64list
-            val newPlatform = Platform(0, latitude, longitude, address, baseType, square, boolIsIncreaseble, boolWithRec, boolWithFence, fenceMat, containersArray, login, base64images?.joinToString(", "))
+            val newPlatform = Platform(
+                0,
+                latitude,
+                longitude,
+                address,
+                baseType,
+                square,
+                boolIsIncreaseble,
+                boolWithRec,
+                boolWithFence,
+                boolNaves,
+                boolKGO,
+                fenceMat,
+                containersArray,
+                login,
+                imageBase64list
+            )
             try{
-                insertDataToTable(newPlatform)
+                if(containersArray.isNullOrEmpty()){
+                    spisokkont.text = "Добавьте контейнеры"
+                    spisokkont.setTextColor(resources.getColor(R.color.red))
+                }
+                else if(imageBase64list.isNullOrEmpty()){
+                    photografii.text = "Приложите фото"
+                    photografii.setTextColor(resources.getColor(R.color.red))
+                }
+                else {
+
+                GlobalScope.launch {
+                    insertDataToTable(newPlatform)
+                    while (this.isActive){
+                    }
+                }.start()
                 Toast.makeText(this, "Площадка успешно добавлена", Toast.LENGTH_LONG).show()
-                val i = Intent(this, MapActivity::class.java)
-                startActivity(i)
+                finish()
+                }
             } catch (e: Exception){
+                btnAddPlatform.isEnabled = true
+                btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             }
         } catch (e: Exception){
+                btnAddPlatform.isEnabled = true
+                btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
                 checkPlatform()
             }
         }
@@ -206,8 +257,13 @@ class PointProperties : AppCompatActivity(), DataBase{
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         if(requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
             var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
-            takenImage = Bitmap.createScaledBitmap(takenImage, (takenImage.width / 4), (takenImage.height) / 4, true)
-            imageBase64list = takenImage.toByteArray()
+            takenImage = Bitmap.createScaledBitmap(
+                takenImage,
+                (takenImage.width) / 4,
+                (takenImage.height) / 4,
+                true
+            )
+            imageBase64list.add(takenImage.toByteArray())
             imageList.add(takenImage)
             mAdapter.notifyDataSetChanged()
         }
@@ -216,7 +272,7 @@ class PointProperties : AppCompatActivity(), DataBase{
 
     private fun Bitmap.toByteArray():ByteArray{
         ByteArrayOutputStream().apply {
-            compress(Bitmap.CompressFormat.JPEG,10,this)
+            compress(Bitmap.CompressFormat.JPEG, 10, this)
 
             return toByteArray()
         }
@@ -236,8 +292,8 @@ class PointProperties : AppCompatActivity(), DataBase{
     }
 
     private fun findAllElements(){
-        picList = findViewById(R.id.picList)
         btnAddPhoto = findViewById(R.id.btnAddPhoto)
+        picList = findViewById(R.id.picList)
         btnAddPlatform = findViewById(R.id.addPlatform)
         txtAddress = findViewById(R.id.chooseAddress)
         txtAddress = findViewById(R.id.chooseAddress)
@@ -250,8 +306,12 @@ class PointProperties : AppCompatActivity(), DataBase{
         txtTipMusora = findViewById(R.id.autoTipMusora)
         txtObjemKonteinerov = findViewById(R.id.autoObjemKonteinerov)
         btnAddContainer = findViewById(R.id.addContainer)
-
+        checkKGO = findViewById(R.id.checkKGO)
+        checkNaves = findViewById(R.id.checkNaves)
+        spisokkont = findViewById(R.id.spisokkont)
+        photografii = findViewById(R.id.photografii)
     }
+
     private fun showHide(view: View) {
         if (view.visibility == View.VISIBLE){
             view.visibility = View.GONE

@@ -1,5 +1,7 @@
 package com.example.mainproject
 
+import android.widget.Toast
+import androidx.lifecycle.MutableLiveData
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -38,9 +40,9 @@ interface DataBase {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         var lastID = 0
         val statement: Statement = connection.createStatement()
-        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, photo) " +
+        var strSQL = "INSERT INTO platform(lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, boolwithcanopy, boolkgo) " +
                 "VALUES(${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', '${platform.Base64images}') returning id;"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', ${platform.BoolNaves}, ${platform.BoolKGO}) returning id;"
             val dataBaseResponse: ResultSet = statement.executeQuery(strSQL)
             while(dataBaseResponse.next()) {
                 lastID = dataBaseResponse.getInt(1)
@@ -51,12 +53,20 @@ interface DataBase {
                 statement.execute(strSQL)
             }
         }
+        if(platform.Base64images!!.isNotEmpty()){
+            platform.Base64images.forEach { c ->
+                strSQL = "insert into pictures(picture, parent_id) values('${c.joinToString(", ")}', ${lastID});"
+                statement.execute(strSQL)
+            }
+        }
             connection.close()
     }
     fun deletePlatform(id: Int){
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val statement: Statement = connection.createStatement()
-        val deleteQuery = "delete from platform where id = $id"
+        var deleteQuery = "delete from platform where id = $id"
+        statement.execute(deleteQuery)
+        deleteQuery = "delete from pictures where parent_id = $id"
         statement.execute(deleteQuery)
         connection.close()
     }
@@ -64,14 +74,20 @@ interface DataBase {
         val connection: Connection = DriverManager.getConnection(URL, getConnectionProperties())
         val lastID:Int = id
         val statement: Statement = connection.createStatement()
-        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, photo) " +
+        var strSQL = "UPDATE OR INSERT INTO platform(id, lat, lng, address, basetype, square, boolisinc, boolwithrec, boolwithfence, fencemat, containeramount, userlogin, boolwithcanopy, boolkgo) " +
                 "VALUES(${lastID}, ${platform.Lat}, ${platform.Lng}, '${platform.Address}', '${platform.BaseType}', ${platform.Square}, ${platform.Boolisincreaseble}," +
-                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', ${platform.Base64images}) MATCHING(id);"
+                " ${platform.Boolwithrec}, ${platform.Boolwithfence}, '${platform.Fencemat}', ${platform.Containersarray?.size}, '${platform.UserLogin}', ${platform.BoolNaves}, ${platform.BoolKGO}) MATCHING(id);"
         statement.execute(strSQL)
         strSQL = "delete from container where parent_id = $lastID;"
         statement.execute(strSQL)
         platform.Containersarray?.forEach { c ->
             strSQL = "insert into container(rubbishtype, volume, parent_id) values('${c.RubbishType}', ${c.Volume}, ${lastID});"
+            statement.execute(strSQL)
+        }
+        strSQL = "delete from pictures where parent_id = $lastID;"
+        statement.execute(strSQL)
+        platform.Base64images.forEach { c ->
+            strSQL = "insert into pictures(picture, parent_id) values('${c.joinToString(", ")}', ${lastID});"
             statement.execute(strSQL)
         }
         connection.close()
@@ -91,6 +107,7 @@ interface DataBase {
             PlatformArray.add(tempPlatform)
         }
         connection.close()
+
         return PlatformArray
     }
     fun getFullPlatformInfo(id: Int): Platform {
@@ -110,26 +127,35 @@ interface DataBase {
             val Boolwithfence = response.getBoolean(9)
             val Fencemat = response.getString(10)
             val UserLogin = response.getString(11)
-            val Base64images = response.getString(13)
+            val Boolwithcanopy = response.getBoolean(13)
+            val Boolkgo = response.getBoolean(14)
             val getContainersQuery = "select * from container where parent_id = '${id}'"
-            val connection2: Connection = DriverManager.getConnection(URL, getConnectionProperties())
             val statement2: Statement = connection.createStatement()
             val containersListResponse = statement2.executeQuery(getContainersQuery)
             val tempContainerList:MutableList<Container> = arrayListOf()
-
             while(containersListResponse.next()) {
                 val rubbishtype = containersListResponse.getString(2)
                 val volume = containersListResponse.getString(3)
                 val container = Container(rubbishtype, volume.toDouble())
                 tempContainerList.add(container)
             }
-
-
-            val tempPlatform = Platform(Id, Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Fencemat, tempContainerList, UserLogin.toString(), Base64images)
-            connection2.close()
+            val pictures = mutableListOf<ByteArray>()
+            val picturesQuery = "select * from pictures where parent_id = '${id}'"
+            val statement3: Statement = connection.createStatement()
+            val picturesResponse = statement3.executeQuery(picturesQuery)
+            while(picturesResponse.next()){
+                val platform = picturesResponse.getString(2)
+                val imageBase64lists = platform.split(", ")
+                val e = mutableListOf<Byte>()
+                imageBase64lists.forEach {
+                    e.add(it.toByte(10))
+                }
+                pictures.add(e.toByteArray())
+            }
+            val tempPlatform = Platform(Id, Lat.toDouble(), Lng.toDouble(), Address.toString(), BaseType.toString(), Square.toDouble(), Boolisincreaseble, Boolwithrec, Boolwithfence, Boolwithcanopy, Boolkgo, Fencemat, tempContainerList, UserLogin.toString(), pictures)
             connection.close()
             return tempPlatform
         }
-        return Platform(-1, 0.0, 0.0, "", "", 0.0, false, false, false, null, mutableListOf(), null)
+        return Platform(-1, 0.0, 0.0, "", "", 0.0, false, false, false, false, false, null, mutableListOf(), null)
     }
 }

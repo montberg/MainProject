@@ -1,6 +1,7 @@
 package com.example.mainproject
 
 
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -14,9 +15,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-var ArrayOfPlatforms:MutableList<PlatformInfo> = mutableListOf()
 class ListActivity : OptionsMenu(), DataBase, SwipeRefreshLayout.OnRefreshListener {
-
+    lateinit var ArrayOfPlatforms:MutableList<PlatformInfo>
     lateinit var adapter:PlatformAdapter
     lateinit var platformlistview:RecyclerView
     lateinit var txtFind:EditText
@@ -25,55 +25,64 @@ class ListActivity : OptionsMenu(), DataBase, SwipeRefreshLayout.OnRefreshListen
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.list_activity)
-        ArrayOfPlatforms = getPlatform()
-        txtFind = findViewById(R.id.txtFind)
+        ArrayOfPlatforms = mutableListOf()
         platformlistview = findViewById(R.id.platformList)
         adapter = PlatformAdapter(ArrayOfPlatforms)
+        txtFind = findViewById(R.id.txtFind)
+        ArrayOfPlatforms = getPlatform()
         val layoutManager = LinearLayoutManager(applicationContext)
         layoutManager.orientation = LinearLayoutManager.VERTICAL
         platformlistview.layoutManager = layoutManager
         platformlistview.itemAnimator = DefaultItemAnimator()
         platformlistview.adapter = adapter
-
         mSwipeRefresh =  findViewById(R.id.swipe)
         mSwipeRefresh.setOnRefreshListener(this)
 
-        txtFind.addTextChangedListener(object:TextWatcher{
+        txtFind.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
+
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if(s.toString()!=""){
+                if (s.toString() != "") {
                     filteredList = ArrayList()
-                    for(item in ArrayOfPlatforms) {
-                        if(item.Address.toLowerCase(Locale.ROOT).replace(",", "").replace(" улица", "").contains(s.toString().toLowerCase(Locale.ROOT).replace(",", "")))
+                    for (item in ArrayOfPlatforms) {
+                        if (item.Address.toLowerCase(Locale.ROOT).replace(",", "").replace(
+                                " улица",
+                                ""
+                            ).contains(s.toString().toLowerCase(Locale.ROOT).replace(",", ""))
+                        )
                             filteredList.add(item)
                         setupRecyclerView(filteredList)
                     }
-                }else {
+                } else {
                     setupRecyclerView(ArrayOfPlatforms)
                 }
             }
+
             private fun setupRecyclerView(list: MutableList<PlatformInfo>) {
                 adapter = PlatformAdapter(list)
-                //setting up layout manager to recyclerView
                 platformlistview.layoutManager = LinearLayoutManager(applicationContext)
                 platformlistview.setHasFixedSize(true)
 
-                //setting adapter to recyclerView
                 platformlistview.adapter = adapter
             }
+
             override fun afterTextChanged(s: Editable?) {
             }
 
         })
     }
     override fun onResume() {
-        ArrayOfPlatforms = getPlatform()
-        adapter.notifyDataSetChanged()
+        refreshList()
         super.onResume()
+        txtFind.setText("")
     }
 
     override fun onRefresh() {
+        txtFind.setText("")
+        refreshList()
+    }
+    private fun refreshList() {
         Handler().postDelayed({ //Останавливаем обновление:
             val arrayOfPlatforms = getPlatform()
             ArrayOfPlatforms = arrayOfPlatforms
@@ -81,6 +90,6 @@ class ListActivity : OptionsMenu(), DataBase, SwipeRefreshLayout.OnRefreshListen
             platformlistview.adapter = Adapter
             Adapter.notifyDataSetChanged()
             mSwipeRefresh.isRefreshing = false
-        }, 1000)
+        }, 100)
     }
 }

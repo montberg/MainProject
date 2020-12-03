@@ -3,6 +3,7 @@ package com.example.mainproject
 import android.content.Intent
 import android.view.Menu
 import android.view.MenuItem
+
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
@@ -11,7 +12,6 @@ open class OptionsMenu: AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
         menuInflater.inflate(R.menu.main, menu)
-
         return true
 
     }
