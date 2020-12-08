@@ -25,8 +25,6 @@ class LoginActivity : AppCompatActivity(), DataBase {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         txtPassword = findViewById(R.id.txtPassword)
@@ -67,14 +65,15 @@ class LoginActivity : AppCompatActivity(), DataBase {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         btnLogin.setOnClickListener{
-
             if(isOnline(this)){
             if(txtLogin.length() != 0 && txtPassword.length() != 0) {
                 try {
-                    var login: String? = null
-                    login = txtLogin.text.toString()
-                    val password = txtPassword.text.toString()
-                    dataBaseConnection(login, password)
+                    //var login: String? = null
+                    //login = txtLogin.text.toString()
+                    //val password = txtPassword.text.toString()
+                    userLogin = txtLogin.text.toString()
+                    userPassword = txtPassword.text.toString()
+                    dataBaseConnection(userLogin, userPassword)
                 } catch (e: Exception) {
                     Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
                 }

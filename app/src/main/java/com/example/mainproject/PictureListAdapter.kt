@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
-class PictureListAdapter(imageList: MutableList<Bitmap>, base64list: MutableList<ByteArray>?) : RecyclerView.Adapter<PictureListAdapter.MyViewHolder>() {
+class PictureListAdapter(imageList: MutableList<Bitmap>, base64list: MutableList<String>?) : RecyclerView.Adapter<PictureListAdapter.MyViewHolder>() {
     var ImageList = imageList
     var Base64list = base64list
 

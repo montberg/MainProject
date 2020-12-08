@@ -18,7 +18,7 @@ class Platform(id:Int,
                fenceMat:String? = null,
                containersArray:MutableList<Container>? = mutableListOf(),
                userLogin:String?,
-               base64images: MutableList<ByteArray> = mutableListOf()
+               base64images: MutableList<String> = mutableListOf()
 ): Serializable {
     val Id = id
     val Lat = lat

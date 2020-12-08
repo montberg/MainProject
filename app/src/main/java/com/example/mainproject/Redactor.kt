@@ -24,6 +24,7 @@ import com.google.gson.JsonObject
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
+import java.util.*
 
 
 lateinit var listofcontainers: MutableList<Container>
@@ -50,11 +51,12 @@ class Redactor : AppCompatActivity(), DataBase {
     lateinit var picList:RecyclerView
     lateinit var mAdapter:PictureListAdapter
     lateinit var adapter:ContainerAdapter
-    lateinit var imageBase64list:MutableList<ByteArray>
+    lateinit var imageBase64list:MutableList<String>
     lateinit var checkNaves:CheckBox
     lateinit var checkKGO:CheckBox
     lateinit var spisokkont:TextView
     lateinit var photografii:TextView
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_redactor)
@@ -127,7 +129,8 @@ class Redactor : AppCompatActivity(), DataBase {
         imageBase64list = platform.Base64images
 
         imageBase64list.forEach {
-            val bmp:Bitmap? = BitmapFactory.decodeByteArray(it, 0, it.size)
+            val imageByteArray = Base64.getDecoder().decode(it)
+            val bmp:Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
             if(bmp != null) imageList.add(bmp)
         }
 
@@ -201,16 +204,19 @@ class Redactor : AppCompatActivity(), DataBase {
                 if(containersArray.isNullOrEmpty()){
                     spisokkont.text = "Добавьте контейнеры"
                     spisokkont.setTextColor(resources.getColor(R.color.red))
+
                 }
                 else if(pictures.isNullOrEmpty()){
                     photografii.text = "Приложите фото"
                     photografii.setTextColor(resources.getColor(R.color.red))
+
                 }
                 else {
                     insertDataToTable(newPlatform, platform.Id)
                     Toast.makeText(this, "Площадка успешно изменена", Toast.LENGTH_LONG).show()
-
+                    finish()
                 }
+
             }
             catch (e: Exception){
                 btnCommitChanges.isEnabled = true
@@ -219,6 +225,9 @@ class Redactor : AppCompatActivity(), DataBase {
             }
             finally {
                 newPos = null
+                btnCommitChanges.isClickable = true
+                btnCommitChanges.isEnabled = true
+                btnCommitChanges.setBackgroundResource(R.drawable.loginbutton)
             }
         }catch (e:Exception){
                 btnCommitChanges.isEnabled = true
@@ -261,9 +270,16 @@ class Redactor : AppCompatActivity(), DataBase {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         if(requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
+            val bytes = File(photoFile.absolutePath).readBytes()
+            val base64 = Base64.getEncoder().encodeToString(bytes)
             var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
-            takenImage = Bitmap.createScaledBitmap(takenImage, (takenImage.width)/4, (takenImage.height)/4, true)
-            imageBase64list.add(takenImage.toByteArray())
+            takenImage = Bitmap.createScaledBitmap(
+                    takenImage,
+                    (takenImage.width) / 4,
+                    (takenImage.height) / 4,
+                    true
+            )
+            imageBase64list.add(base64)
             imageList.add(takenImage)
             mAdapter.notifyDataSetChanged()
         }

@@ -74,9 +74,8 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
             startActivity(goToPointProps)}
             catch (e:Exception){
                 Toast.makeText(this, "Нужно активировать геолокацию", Toast.LENGTH_SHORT).show()
+                createPoint.isClickable = true
             }
-
-
         }
         userLocationLayer = MapKitFactory.getInstance().createUserLocationLayer(mapview.mapWindow)
         userLocationLayer.isVisible = true
@@ -88,7 +87,6 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
     }
     override fun onResume() {
         createPoint.isClickable = true
-        mapview.map.mapObjects.clear()
         try{
             platforms = getPlatform()
             platforms.forEach { p ->
@@ -119,9 +117,6 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
         MapKitFactory.getInstance().onStop()
     }
     override fun onStart(){
-        platforms.forEach{
-            mapview.map.mapObjects.addPlacemark(Point(it.Lng, it.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
-        }
         super.onStart()
         mapview.onStart()
         MapKitFactory.getInstance().onStart()

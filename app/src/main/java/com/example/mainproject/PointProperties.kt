@@ -17,11 +17,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import id.zelory.compressor.Compressor
 import kotlinx.coroutines.*
 import org.w3c.dom.Text
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
+import java.util.*
 
 
 lateinit var containerList: MutableList<Container>
@@ -54,7 +56,7 @@ class PointProperties : AppCompatActivity(), DataBase{
     lateinit var picList:RecyclerView
     lateinit var mAdapter:PictureListAdapter
     lateinit var adapter:ContainerAdapter
-    lateinit var imageBase64list:MutableList<ByteArray>
+    lateinit var imageBase64list:MutableList<String>
     lateinit var checkNaves:CheckBox
     lateinit var checkKGO:CheckBox
     lateinit var spisokkont:TextView
@@ -186,7 +188,7 @@ class PointProperties : AppCompatActivity(), DataBase{
             btnAddPlatform.isClickable = false
             btnAddPlatform.isEnabled = false
             btnAddPlatform.setBackgroundResource(R.drawable.loginbutton2state)
-            try{
+
             val address = txtAddress.text.toString()
             val latitude = platformlat
             val longitude = platformlng
@@ -240,11 +242,6 @@ class PointProperties : AppCompatActivity(), DataBase{
                 btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             }
-        } catch (e: Exception){
-                btnAddPlatform.isEnabled = true
-                btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
-                checkPlatform()
-            }
         }
     }
 
@@ -256,24 +253,27 @@ class PointProperties : AppCompatActivity(), DataBase{
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         if(requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
-            takenImage = Bitmap.createScaledBitmap(
-                takenImage,
-                (takenImage.width) / 4,
-                (takenImage.height) / 4,
-                true
-            )
-            imageBase64list.add(takenImage.toByteArray())
-            imageList.add(takenImage)
-            mAdapter.notifyDataSetChanged()
+                var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
+                takenImage = Bitmap.createScaledBitmap(
+                        takenImage,
+                        (takenImage.width) / 4,
+                        (takenImage.height) / 4,
+                        true
+                )
+                val stream = ByteArrayOutputStream()
+                takenImage.compress(Bitmap.CompressFormat.JPEG, 15, stream)
+                val bitmapBytearray = stream.toByteArray()
+                val base64 = Base64.getEncoder().encodeToString(bitmapBytearray)
+
+                imageBase64list.add(base64)
+                imageList.add(takenImage)
+                mAdapter.notifyDataSetChanged()
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
-
     private fun Bitmap.toByteArray():ByteArray{
         ByteArrayOutputStream().apply {
             compress(Bitmap.CompressFormat.JPEG, 10, this)
-
             return toByteArray()
         }
     }
