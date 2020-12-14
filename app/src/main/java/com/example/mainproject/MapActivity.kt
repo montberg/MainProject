@@ -22,6 +22,8 @@ import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
 import java.lang.Exception
 
 
@@ -50,16 +52,14 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
             ActivityCompat.requestPermissions(this, permissions, 0)
         }
         mapview = findViewById(R.id.map)
-        mapview.map.mapObjects.clear()
         mypos = Point(0.0, 0.0)
         createPoint = findViewById(R.id.createPoint)
         getMyLocation = findViewById(R.id.getMyLocation)
         platforms = mutableListOf()
-        try{
-        platforms = getPlatform()
-        }catch (e:java.lang.Exception){
-            Toast.makeText(this, "Нет подключения к серверу", Toast.LENGTH_LONG).show()
-         }
+
+
+
+
         moveCamera(TARGET_LOCATION, 11F)
         createPoint.setOnClickListener{
             createPoint.isClickable = false
@@ -88,10 +88,13 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
     override fun onResume() {
         createPoint.isClickable = true
         try{
-            platforms = getPlatform()
-            platforms.forEach { p ->
-                mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(this, R.drawable.ic_marker_dumpster))
+            MainScope().async {
+                platforms = getPlatform().await()
+                platforms.forEach { p ->
+                    mapview.map.mapObjects.addPlacemark(Point(p.Lng, p.Lat), ImageProvider.fromResource(applicationContext, R.drawable.ic_marker_dumpster))
+                }
             }
+
         }catch (e:java.lang.Exception){
             Toast.makeText(this, "Нет подключения к серверу", Toast.LENGTH_LONG).show()
         }
@@ -108,7 +111,8 @@ open class MapActivity : OptionsMenu(), UserLocationObjectListener, DataBase{
     override fun onObjectAdded(userLocationView: UserLocationView) {
         userLocationView.pin.setIcon(ImageProvider.fromResource(this, R.drawable.ic_marker_myposition))
         userLocationView.arrow.setIcon(ImageProvider.fromResource(this, R.drawable.ic_marker_myposition))
-        userLocationView.accuracyCircle.fillColor = Color.BLUE
+        userLocationView.accuracyCircle.fillColor = resources.getColor(R.color.blue2)
+        userLocationView.accuracyCircle.isGeodesic = true
     }
     override fun onStop() {
         super.onStop()

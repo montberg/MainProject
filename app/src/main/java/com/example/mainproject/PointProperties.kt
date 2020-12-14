@@ -2,6 +2,7 @@ package com.example.mainproject
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,14 +13,14 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import id.zelory.compressor.Compressor
 import kotlinx.coroutines.*
-import org.w3c.dom.Text
+import net.iharder.Base64
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
@@ -56,6 +57,7 @@ class PointProperties : AppCompatActivity(), DataBase{
     lateinit var picList:RecyclerView
     lateinit var mAdapter:PictureListAdapter
     lateinit var adapter:ContainerAdapter
+    lateinit var progressBar: ProgressBar
     lateinit var imageBase64list:MutableList<String>
     lateinit var checkNaves:CheckBox
     lateinit var checkKGO:CheckBox
@@ -76,6 +78,21 @@ class PointProperties : AppCompatActivity(), DataBase{
         recyclerView.itemAnimator = DefaultItemAnimator()
         recyclerView.adapter = mAdapter
 
+
+
+        MainScope().launch {
+            val response = urlRead().await()
+            txtAddress.setText(response[0])
+            val txtAddressAdapter = ArrayAdapter(
+                applicationContext,
+                R.layout.autocomplete_layout,
+                response
+            )
+            txtAddressAdapter.setDropDownViewResource(R.layout.autocomplete_layout)
+            txtAddress.setAdapter(txtAddressAdapter)
+        }
+
+
         containerList = arrayListOf()
         val containerListView = findViewById<RecyclerView>(R.id.containerListView)
 
@@ -89,16 +106,15 @@ class PointProperties : AppCompatActivity(), DataBase{
         val baseType = listOf("Бетон", "Плита", "Щебень", "Отсутствует")
         val fenceMat = listOf("Металл", "Профнастил")
         val rubbishType = listOf("ТКО", "Негабарит", "Стекло", "Бумага", "Пищевые отходы")
-        val lng = intent.getDoubleExtra(LAT, 0.0)
-        val lat = intent.getDoubleExtra(LNG, 0.0)
+
         val platformlng = intent.getDoubleExtra(platformLAT, 0.0)
         val platformlat = intent.getDoubleExtra(platformLNG, 0.0)
         val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
         val login = prefs.getString("login", null)
-        val apiKey = "18e0a04c-f1d7-4665-af58-499ad280cd46"
-        val geocodeURL = "https://geocode-maps.yandex.ru/1.x/?apikey=$apiKey&format=json&geocode=$lat,$lng"
-        val apiResponse = URL(geocodeURL).readText()
-        val txtAddressArray = getAddressLines(apiResponse)
+
+
+
+
         val tipOsnovaniaAdapter: ArrayAdapter<String> = ArrayAdapter<String>(
             this, android.R.layout.simple_dropdown_item_1line, baseType
         )
@@ -135,10 +151,8 @@ class PointProperties : AppCompatActivity(), DataBase{
 
 
 
-        val txtAddressAdapter = ArrayAdapter(this, R.layout.autocomplete_layout, txtAddressArray)
-        txtAddressAdapter.setDropDownViewResource(R.layout.autocomplete_layout)
-        txtAddress.setAdapter(txtAddressAdapter)
-        txtAddress.setText(txtAddressArray[0])
+
+
         txtAddress.isSelected = true
         txtAddress.setOnFocusChangeListener { _, hasFocus ->
             if(hasFocus) txtAddress.showDropDown()
@@ -184,11 +198,9 @@ class PointProperties : AppCompatActivity(), DataBase{
             }
         }
 
-        btnAddPlatform.setOnClickListener {
-            btnAddPlatform.isClickable = false
-            btnAddPlatform.isEnabled = false
-            btnAddPlatform.setBackgroundResource(R.drawable.loginbutton2state)
-
+        btnAddPlatform.setOnClickListener{
+            try{
+                changeButtonState()
             val address = txtAddress.text.toString()
             val latitude = platformlat
             val longitude = platformlng
@@ -199,8 +211,7 @@ class PointProperties : AppCompatActivity(), DataBase{
             val boolWithFence = checkOgrazhdenie.isChecked
             val boolNaves = checkNaves.isChecked
             val boolKGO = checkKGO.isChecked
-            val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
-            val containersArray: MutableList<Container>? = if(containerList.isEmpty()) mutableListOf() else containerList
+            val fenceMat:String? = if(txtMaterialOgrazhdenia.text.isBlank()) null else txtMaterialOgrazhdenia.text.toString()
             val newPlatform = Platform(
                 0,
                 latitude,
@@ -214,37 +225,53 @@ class PointProperties : AppCompatActivity(), DataBase{
                 boolNaves,
                 boolKGO,
                 fenceMat,
-                containersArray,
+                containerList,
                 login,
-                imageBase64list
-            )
-            try{
-                if(containersArray.isNullOrEmpty()){
-                    spisokkont.text = "Добавьте контейнеры"
-                    spisokkont.setTextColor(resources.getColor(R.color.red))
+                imageBase64list)
+                MainScope().launch {
+                   val mProgressDialog = ProgressDialog.show(this@PointProperties,  "Загрузка", "Пожалуйста, подождите");
+                    mProgressDialog.setCanceledOnTouchOutside(false); // main method that force user cannot click outside
+                    mProgressDialog.setCancelable(true)
+                    insertDataToTable(newPlatform).await()
+                    Toast.makeText(this@PointProperties, "Площадка успешно добавлена", Toast.LENGTH_LONG).show()
+                    finish()
                 }
-                else if(imageBase64list.isNullOrEmpty()){
-                    photografii.text = "Приложите фото"
-                    photografii.setTextColor(resources.getColor(R.color.red))
-                }
-                else {
 
-                GlobalScope.launch {
-                    insertDataToTable(newPlatform)
-                    while (this.isActive){
-                    }
-                }.start()
-                Toast.makeText(this, "Площадка успешно добавлена", Toast.LENGTH_LONG).show()
-                finish()
-                }
-            } catch (e: Exception){
-                btnAddPlatform.isEnabled = true
-                btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+
+            }catch (e:java.lang.Exception){
+                checkEverything()
+                changeButtonState()
             }
         }
+        }
+    private fun changeButtonState(){
+        if(btnAddPlatform.isEnabled){
+            btnAddPlatform.isClickable = false
+            btnAddPlatform.isEnabled = false
+            btnAddPlatform.setBackgroundResource(R.drawable.loginbutton2state)}
+        else{
+            btnAddPlatform.isClickable = true
+            btnAddPlatform.isEnabled = true
+            btnAddPlatform.setBackgroundResource(R.drawable.loginbutton)
+        }
     }
-
+    private fun checkEverything(){
+        if(containerList.isNullOrEmpty()) {
+            spisokkont.text = "Добавьте контейнеры!"
+            spisokkont.setTextColor(resources.getColor(R.color.red))
+        }
+        if(imageBase64list.isNullOrEmpty()){
+            photografii.text = "Добавьте фотографии!"
+            photografii.setTextColor(resources.getColor(R.color.red))
+        }
+        if(txtAddress.text.isEmpty()) txtAddress.error = "Не заполнено"
+        if(txtTipOsnovania.text.isEmpty()) txtTipOsnovania.error = "Не заполнено"
+        if(checkOgrazhdenie.isChecked){
+            if(txtMaterialOgrazhdenia.text.isEmpty()) txtMaterialOgrazhdenia.error = "Не заполнено"
+        }
+        if(txtPloshad.text.isEmpty()) txtPloshad.error = "Не заполнено"
+        if(txtMaterialOgrazhdenia.text.isEmpty()) txtAddress.error = "Не заполнено"
+    }
     private fun getPhotoFile(fileName: String): File {
         val storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(fileName, ".jpg", storageDirectory)
@@ -254,16 +281,23 @@ class PointProperties : AppCompatActivity(), DataBase{
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         if(requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
                 var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
+            if(takenImage.width > takenImage.height){
                 takenImage = Bitmap.createScaledBitmap(
                         takenImage,
-                        (takenImage.width) / 4,
-                        (takenImage.height) / 4,
+                        900,
+                        480,
                         true
-                )
+                )} else{
+                takenImage = Bitmap.createScaledBitmap(
+                        takenImage,
+                        480,
+                        900,
+                        true)
+            }
                 val stream = ByteArrayOutputStream()
                 takenImage.compress(Bitmap.CompressFormat.JPEG, 15, stream)
                 val bitmapBytearray = stream.toByteArray()
-                val base64 = Base64.getEncoder().encodeToString(bitmapBytearray)
+                val base64 = Base64.encodeBytes(bitmapBytearray)
 
                 imageBase64list.add(base64)
                 imageList.add(takenImage)
@@ -271,24 +305,10 @@ class PointProperties : AppCompatActivity(), DataBase{
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
-    private fun Bitmap.toByteArray():ByteArray{
-        ByteArrayOutputStream().apply {
-            compress(Bitmap.CompressFormat.JPEG, 10, this)
-            return toByteArray()
-        }
-    }
+
     private fun checkContainer(){
         if(txtTipMusora.text.isEmpty()) txtTipMusora.error = "Не заполнено"
         if(txtObjemKonteinerov.text.isEmpty()) txtObjemKonteinerov.error = "Не заполнено"
-    }
-    private fun checkPlatform(){
-        if(txtAddress.text.isEmpty()) txtAddress.error = "Не заполнено"
-        if(txtTipOsnovania.text.isEmpty()) txtTipOsnovania.error = "Не заполнено"
-        if(checkOgrazhdenie.isChecked){
-            if(txtMaterialOgrazhdenia.text.isEmpty()) txtMaterialOgrazhdenia.error = "Не заполнено"
-        }
-        if(txtPloshad.text.isEmpty()) txtPloshad.error = "Не заполнено"
-        if(txtMaterialOgrazhdenia.text.isEmpty()) txtAddress.error = "Не заполнено"
     }
 
     private fun findAllElements(){
@@ -310,6 +330,7 @@ class PointProperties : AppCompatActivity(), DataBase{
         checkNaves = findViewById(R.id.checkNaves)
         spisokkont = findViewById(R.id.spisokkont)
         photografii = findViewById(R.id.photografii)
+        progressBar = findViewById(R.id.progressBar)
     }
 
     private fun showHide(view: View) {
@@ -332,6 +353,18 @@ class PointProperties : AppCompatActivity(), DataBase{
             val addressDetails = geocoder.getAsJsonObject("AddressDetails")
             val country = addressDetails.getAsJsonObject("Country")
             country.get("AddressLine").asString
+        }
+    }
+
+
+
+    private fun urlRead():Deferred<List<String>>{
+        val lng = intent.getDoubleExtra(LAT, 0.0)
+        val lat = intent.getDoubleExtra(LNG, 0.0)
+        val apiKey = "18e0a04c-f1d7-4665-af58-499ad280cd46"
+        val geocodeURL = "https://geocode-maps.yandex.ru/1.x/?apikey=$apiKey&format=json&geocode=$lat,$lng"
+        return GlobalScope.async {
+            getAddressLines(URL(geocodeURL).readText())
         }
     }
 }

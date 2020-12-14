@@ -1,6 +1,7 @@
 package com.example.mainproject
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -21,14 +22,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import net.iharder.Base64
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
 import java.util.*
 
 
-lateinit var listofcontainers: MutableList<Container>
+
 class Redactor : AppCompatActivity(), DataBase {
+    lateinit var listofcontainers: MutableList<Container>
     lateinit var txtTipMusora : AutoCompleteTextView
     lateinit var txtObjemKonteinerov : EditText
     lateinit var txtAddress: AutoCompleteTextView
@@ -56,25 +62,66 @@ class Redactor : AppCompatActivity(), DataBase {
     lateinit var checkKGO:CheckBox
     lateinit var spisokkont:TextView
     lateinit var photografii:TextView
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_redactor)
         findAllElements()
+        var lat = 0.0
+        var lng = 0.0
+        imageList = mutableListOf()
         val platformID = intent.getSerializableExtra("platformID") as Int
-        val platform:Platform = getFullPlatformInfo(platformID)
+        var platform = Platform(-1,0.0, 0.0, "", "", 0.0, false, false, false, false, false, "", mutableListOf(), "", mutableListOf())
+        adapter = ContainerAdapter(mutableListOf())
+        MainScope().launch {
+            val mProgressDialog = ProgressDialog.show(this@Redactor,  "Загрузка", "Пожалуйста, подождите");
+            mProgressDialog.setCanceledOnTouchOutside(false); // main method that force user cannot click outside
+            mProgressDialog.setCancelable(true)
+            platform = getFullPlatformInfo(platformID).await()
+            lat = platform.Lat
+            lng = platform.Lng
+            txtAddress.setText(platform.Address)
+            txtMaterialOgrazhdenia.setText(platform.Fencemat)
+            txtTipOsnovania.setText(platform.BaseType)
+            txtPloshad.setText(platform.Square.toString())
+            checkKGO.isChecked = platform.BoolKGO
+            checkNaves.isChecked = platform.BoolNaves
+            checkSReconstrukcjei.isChecked = platform.Boolwithrec
+            checkOgrazhdenie.isChecked = platform.Boolwithfence
+            checkUvelichitPloshad.isChecked = platform.Boolisincreaseble
+            listofcontainers = platform.Containersarray!!
+            imageBase64list = platform.Base64images
+            imageBase64list.forEach {
+                val imageByteArray = Base64.decode(it)
+                val bmp:Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+                if(bmp != null) imageList.add(bmp)
+            }
+            mAdapter = PictureListAdapter(imageList, imageBase64list)
+            mAdapter.notifyDataSetChanged()
+            val recyclerView = findViewById<RecyclerView>(R.id.picList)
+            val mLayoutManager = LinearLayoutManager(applicationContext)
+            mLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+            recyclerView.layoutManager = mLayoutManager
+            recyclerView.itemAnimator = DefaultItemAnimator()
+            recyclerView.adapter = mAdapter
+            mAdapter.notifyDataSetChanged()
+            adapter = ContainerAdapter(listofcontainers)
+            adapter.notifyDataSetChanged()
+            val containerListView = findViewById<RecyclerView>(R.id.containerListView)
+            adapter = ContainerAdapter(listofcontainers)
+            val cLayoutManager = LinearLayoutManager(applicationContext)
+            cLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+            containerListView.layoutManager = cLayoutManager
+            containerListView.itemAnimator = DefaultItemAnimator()
+            containerListView.adapter = adapter
+            adapter.notifyDataSetChanged()
+            mProgressDialog.hide()
+        }
+
         val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
         val login = prefs.getString("login", null)
-        listofcontainers = platform.Containersarray?.toMutableList()!!
-        txtAddress.setText(platform.Address)
-        txtTipOsnovania.setText(platform.BaseType)
-        txtPloshad.setText(platform.Square.toString())
-        checkUvelichitPloshad.isChecked = platform.Boolisincreaseble
-        checkSReconstrukcjei.isChecked = platform.Boolwithrec
-        checkOgrazhdenie.isChecked = platform.Boolwithfence
-        checkNaves.isChecked = platform.BoolNaves
-        checkKGO.isChecked = platform.BoolKGO
-        txtMaterialOgrazhdenia.setText(platform.Fencemat)
+
         val baseType = listOf("Бетон", "Плита", "Щебень", "Отсутствует")
         val fenceMat = listOf("Металл", "Профнастил")
         val rubbishType = listOf("ТКО", "Негабарит", "Стекло", "Бумага", "Пищевые отходы")
@@ -118,41 +165,20 @@ class Redactor : AppCompatActivity(), DataBase {
         checkUvelichitPloshad.setOnCheckedChangeListener { _, isChecked ->
             if(isChecked) showHide(checkSReconstrukcjei)
             else showHide(checkSReconstrukcjei)
-            checkSReconstrukcjei.isChecked = false
         }
         checkOgrazhdenie.setOnCheckedChangeListener{ _, isChecked ->
             if(isChecked) showHide(txtMaterialOgrazhdenia)
             else showHide(txtMaterialOgrazhdenia)
-            txtMaterialOgrazhdenia.text = null
+
         }
-        imageList = mutableListOf()
+        listofcontainers = platform.Containersarray!!
         imageBase64list = platform.Base64images
 
-        imageBase64list.forEach {
-            val imageByteArray = Base64.getDecoder().decode(it)
-            val bmp:Bitmap? = BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
-            if(bmp != null) imageList.add(bmp)
-        }
-
-        val recyclerView = findViewById<RecyclerView>(R.id.picList)
-        mAdapter = PictureListAdapter(imageList, imageBase64list)
-        val mLayoutManager = LinearLayoutManager(applicationContext)
-        mLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        recyclerView.layoutManager = mLayoutManager
-        recyclerView.itemAnimator = DefaultItemAnimator()
-        recyclerView.adapter = mAdapter
-        mAdapter.notifyDataSetChanged()
 
 
-        val containerListView = findViewById<RecyclerView>(R.id.containerListView)
-        adapter = ContainerAdapter(listofcontainers)
-        containerList = platform.Containersarray
-        val cLayoutManager = LinearLayoutManager(applicationContext)
-        cLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        containerListView.layoutManager = cLayoutManager
-        containerListView.itemAnimator = DefaultItemAnimator()
-        containerListView.adapter = adapter
-        adapter.notifyDataSetChanged()
+
+
+
 
 
         deletePlatform.setOnClickListener {
@@ -170,10 +196,13 @@ class Redactor : AppCompatActivity(), DataBase {
                 val alert = builder.create()
                 alert.show()
             }catch (e: Exception){
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                Toast.makeText(Redactor(), e.toString(), Toast.LENGTH_LONG).show()
             }
         }
         btnCommitChanges.setOnClickListener {
+            val mProgressDialog = ProgressDialog.show(this@Redactor,  "Загрузка", "Пожалуйста, подождите");
+            mProgressDialog.setCanceledOnTouchOutside(false); // main method that force user cannot click outside
+            mProgressDialog.setCancelable(true)
             btnCommitChanges.isClickable = false
             btnCommitChanges.isEnabled = false
             btnCommitChanges.setBackgroundResource(R.drawable.loginbutton2state)
@@ -182,11 +211,25 @@ class Redactor : AppCompatActivity(), DataBase {
             val baseType = txtTipOsnovania.text.toString()
             val square = txtPloshad.text.toString().toDouble()
             val boolIsIncreaseble = checkUvelichitPloshad.isChecked
-            val boolWithRec = checkSReconstrukcjei.isChecked
+                var boolWithRec: Boolean
+                if(boolIsIncreaseble) {
+                        boolWithRec = checkSReconstrukcjei.isChecked
+                    } else {
+                        boolWithRec = false
+                    }
             val boolWithFence = checkOgrazhdenie.isChecked
             val boolNaves = checkNaves.isChecked
             val boolKGO = checkKGO.isChecked
-            val fenceMat:String? = if(txtMaterialOgrazhdenia.text == null) null else txtMaterialOgrazhdenia.text.toString()
+            var fenceMat:String? = ""
+            if(boolNaves) {
+                if (txtMaterialOgrazhdenia.text.isNotBlank()) {
+                    fenceMat = txtMaterialOgrazhdenia.text.toString()
+                } else {
+                    txtMaterialOgrazhdenia.setError("Не заполнено")
+                }
+            }else{
+                fenceMat = null
+            }
             val containersArray: MutableList<Container>? = if(listofcontainers.isEmpty()) mutableListOf() else listofcontainers
             val lat:Double
             val lng:Double
@@ -212,9 +255,12 @@ class Redactor : AppCompatActivity(), DataBase {
 
                 }
                 else {
-                    insertDataToTable(newPlatform, platform.Id)
-                    Toast.makeText(this, "Площадка успешно изменена", Toast.LENGTH_LONG).show()
+                    MainScope().launch {
+                    insertDataToTable(newPlatform, platform.Id).await()
+                    mProgressDialog.hide()
+                    Toast.makeText(this@Redactor, "Площадка успешно изменена", Toast.LENGTH_LONG).show()
                     finish()
+                    }
                 }
 
             }
@@ -224,12 +270,14 @@ class Redactor : AppCompatActivity(), DataBase {
                 Toast.makeText(this, "Что-то пошло не так: $e", Toast.LENGTH_LONG).show()
             }
             finally {
+                mProgressDialog.hide()
                 newPos = null
                 btnCommitChanges.isClickable = true
                 btnCommitChanges.isEnabled = true
                 btnCommitChanges.setBackgroundResource(R.drawable.loginbutton)
             }
         }catch (e:Exception){
+                mProgressDialog.hide()
                 btnCommitChanges.isEnabled = true
                 btnCommitChanges.setBackgroundResource(R.drawable.loginbutton)
                 checkPlatform()
@@ -246,8 +294,8 @@ class Redactor : AppCompatActivity(), DataBase {
         }
         showOnMap.setOnClickListener {
             val i = Intent(this, ShowContainerOnMap::class.java)
-            i.putExtra("lat", platform.Lat)
-            i.putExtra("lng", platform.Lng)
+            i.putExtra("lat", lat)
+            i.putExtra("lng", lng)
             startActivity(i)
         }
         btnAddPhoto.setOnClickListener {
@@ -270,15 +318,25 @@ class Redactor : AppCompatActivity(), DataBase {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         if(requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK){
-            val bytes = File(photoFile.absolutePath).readBytes()
-            val base64 = Base64.getEncoder().encodeToString(bytes)
             var takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
-            takenImage = Bitmap.createScaledBitmap(
-                    takenImage,
-                    (takenImage.width) / 4,
-                    (takenImage.height) / 4,
-                    true
-            )
+            if(takenImage.width > takenImage.height){
+                takenImage = Bitmap.createScaledBitmap(
+                        takenImage,
+                        900,
+                        480,
+                        true
+                )} else{
+                takenImage = Bitmap.createScaledBitmap(
+                        takenImage,
+                        480,
+                        900,
+                        true)
+            }
+            val stream = ByteArrayOutputStream()
+            takenImage.compress(Bitmap.CompressFormat.JPEG, 15, stream)
+            val bitmapBytearray = stream.toByteArray()
+            val base64 = net.iharder.Base64.encodeBytes(bitmapBytearray)
+
             imageBase64list.add(base64)
             imageList.add(takenImage)
             mAdapter.notifyDataSetChanged()
@@ -286,14 +344,6 @@ class Redactor : AppCompatActivity(), DataBase {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-
-    private fun Bitmap.toByteArray():ByteArray{
-        ByteArrayOutputStream().apply {
-            compress(Bitmap.CompressFormat.JPEG,10,this)
-
-            return toByteArray()
-        }
-    }
     private fun showHide(view: View) {
         if (view.visibility == View.VISIBLE){
             view.visibility = View.GONE

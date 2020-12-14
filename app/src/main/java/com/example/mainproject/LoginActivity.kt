@@ -19,10 +19,7 @@ class LoginActivity : AppCompatActivity(), DataBase {
     private lateinit var txtPassword:EditText
     private lateinit var txtLogin: EditText
     private lateinit var btnLogin: Button
-    private lateinit var devTest:Button
-    private lateinit var devLogin:Button
     private var PREFERENCES_NAME = "loginPrefs"
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +27,9 @@ class LoginActivity : AppCompatActivity(), DataBase {
         txtPassword = findViewById(R.id.txtPassword)
         txtLogin = findViewById(R.id.txtLogin)
         btnLogin = findViewById(R.id.btnLogin)
-        devTest = findViewById(R.id.devTest)
-        devLogin = findViewById(R.id.devLogin)
 
         val prefs = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
         val isLoggedIn = prefs.getBoolean("isLoggedIn", false)
-
 
         if(isLoggedIn){
             try{
@@ -47,30 +41,12 @@ class LoginActivity : AppCompatActivity(), DataBase {
         }
         }
 
-        devTest.setOnClickListener {
-            val devTest = Intent(this, TestingStuff::class.java)
-            startActivity(devTest)
-        }
-
-        devLogin.setOnClickListener {
-            try{
-            val loginSuccess = Intent(this, MapActivity::class.java)
-            startActivity(loginSuccess)
-            finish()
-            }catch (e:Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
-            }
-
-        }
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         btnLogin.setOnClickListener{
             if(isOnline(this)){
             if(txtLogin.length() != 0 && txtPassword.length() != 0) {
                 try {
-                    //var login: String? = null
-                    //login = txtLogin.text.toString()
-                    //val password = txtPassword.text.toString()
                     userLogin = txtLogin.text.toString()
                     userPassword = txtPassword.text.toString()
                     dataBaseConnection(userLogin, userPassword)
@@ -97,20 +73,16 @@ class LoginActivity : AppCompatActivity(), DataBase {
                 val loginSuccess = Intent(this, MapActivity::class.java)
                 startActivity(loginSuccess)
                 finish()
-            }
+        }
             else{
                 editor.putBoolean("isLoggedIn", false)
                 editor.putString("login", null)
                 Toast.makeText(this, "Логин или пароль введены неверно.", Toast.LENGTH_SHORT).show()
             }
     }
-
-
     private fun isOnline(context: Context): Boolean { //функция проверки наличия подключения к инету
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val netInfo = cm.activeNetworkInfo
         return netInfo != null && netInfo.isConnectedOrConnecting
     }
-
-
 }
